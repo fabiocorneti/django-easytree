@@ -8,7 +8,7 @@ def move_post_save(sender, instance, **kwargs):
     current_parent = getattr(instance, 'current_parent', None)
     if new_parent and current_parent:
         logging.debug('move_post_save: moved %s form %s to %s' % (str(instance), str(current_parent), str(new_parent)) )
-        sender.easytree.move(instance, new_parent, pos='first-sibling')
+        sender.easytree.move(instance, new_parent, pos='first-child')
 
 def calculate_lft_rght(sender, instance, **kwargs):
     new_parent = getattr(instance, 'parent', None)
