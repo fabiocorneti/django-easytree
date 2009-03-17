@@ -1,3 +1,17 @@
+from easytree.exceptions import InvalidMoveToDescendant, MissingNodeOrderBy, InvalidPosition
+from django.utils.translation import ugettext_lazy as _
+
+pos_map = {
+    'first-sibling': _('first sibling'),
+    'left': _('left'),
+    'right': _('right'),
+    'last-sibling': _('last sibling'),
+    'sorted-sibling': _('sorted sibling'),
+    'first-child': _('first child'),
+    'last-child': _('last child'),
+    'sorted-child': _('sorted child')
+}    
+
 class MoveOptions(object):
     
     def __init__(self, manager):

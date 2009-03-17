@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.db import connection
 from easytree.moveoptions import MoveOptions
+from django.db.models import Q
 import logging
 
 def move_post_save(sender, instance, **kwargs):
@@ -608,3 +609,20 @@ class EasyTreeManager(models.Manager):
         except IndexError:
             newpos, siblings = None, []
         return newpos, siblings
+        
+    def _find_next_node(self, tree_id, lft1, lft2):
+        
+        cls = self.get_first_model()
+        
+        last_lft = cls.objects.filter(tree_id=tree_id, lft__gte=lft1,
+                 lft__lt=lft2).order_by('lft').reverse()[0].lft
+        if lft2 - last_lft <= 2:
+            interval = 10
+        else:
+
+            interval = (lft2 - last_lft) / 10
+
+            if interval == 0:
+                interval = 1
+
+        return last_lft + 10, last_lft + 10 * 2
