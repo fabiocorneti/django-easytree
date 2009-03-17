@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.db import connection
+from easytree.moveoptions import MoveOptions
 import logging
 
 def move_post_save(sender, instance, **kwargs):
@@ -22,6 +23,14 @@ def calculate_lft_rght(sender, instance, **kwargs):
          sender.easytree.add_root(new_object=instance)
         
 class EasyTreeManager(models.Manager):
+    
+    def __init__(self, *args, **kwargs):
+        
+        super(EasyTreeManager, self).__init__(*args, **kwargs)
+
+        move_opts_class = kwargs.get('move_opts_class', MoveOptions)
+        self.move_opts = move_opts_class(self)
+        
     
     def contribute_to_class(self, model, name):
         super(EasyTreeManager, self).contribute_to_class(model, name)
@@ -77,7 +86,7 @@ class EasyTreeManager(models.Manager):
         :returns: ``True`` if the node if a descendant of another node given
             as an argument, else, returns ``False``
 
-        See: :meth:`treebeard.Node.is_descendant_of`
+        See: :meth:`treebeard.Node.is_descendant_of_of`
         """
         return target.tree_id == node.tree_id and \
                target.lft > node.lft and \
@@ -174,7 +183,7 @@ class EasyTreeManager(models.Manager):
         See: :meth:`treebeard.Node.move`
         """
 
-        pos = self._fix_move_opts(target, pos)
+        pos = self.move_opts.fix_move_opts(target, dest, pos)
         cls = self.get_first_model()
 
         stmts = []
@@ -191,7 +200,7 @@ class EasyTreeManager(models.Manager):
                        'last-child': 'last-sibling',
                        'sorted-child': 'sorted-sibling'}[pos]
 
-        if self.is_descendant(dest, target):
+        if self.is_descendant_of(dest, target):
             raise InvalidMoveToDescendant("Can't move node to a descendant.")
 
         if target == dest and (
@@ -204,8 +213,8 @@ class EasyTreeManager(models.Manager):
             return
 
         if pos == 'sorted-sibling':
-            siblings = list(self.get_sorted_pos_queryset(dest, \
-                self.get_siblings_for(dest, self)))
+            siblings = list(self.get_sorted_pos_queryset_for(dest, \
+                self.get_siblings_for(dest, self), target))
             if siblings:
                 pos = 'left'
                 dest = siblings[0]
@@ -339,7 +348,7 @@ class EasyTreeManager(models.Manager):
         """
         cls = self.get_first_model()
         
-        pos = self._fix_add_sibling_opts(target, pos)
+        pos = self.move_opts.fix_add_sibling_opts(new_object, target, pos)
 
         # creating a new object
         new_object = new_object or cls(**kwargs)
@@ -351,8 +360,8 @@ class EasyTreeManager(models.Manager):
             new_object.lft = 1
             new_object.rgt = 2
             if pos == 'sorted-sibling':
-                siblings = list(self.get_sorted_pos_queryset(target, \
-                    self.get_siblings(target, new_object)))
+                siblings = list(self.get_sorted_pos_queryset_for(target, \
+                    self.get_siblings(target), new_object))
                 if siblings:
                     pos = 'left'
                     target = siblings[0]
@@ -374,7 +383,7 @@ class EasyTreeManager(models.Manager):
             new_object.tree_id = target.tree_id
 
             if pos == 'sorted-sibling':
-                siblings = list(self.get_sorted_pos_queryset(
+                siblings = list(self.get_sorted_pos_queryset_for(target,
                     self.get_siblings_for(target), new_object))
                 if siblings:
                     pos = 'left'
@@ -574,43 +583,28 @@ class EasyTreeManager(models.Manager):
         except IndexError:
             return None
             
-    def _fix_add_sibling_opts(self, target, pos):
-        """
-        prepare the pos variable for the add_sibling method
-        """
-        node_order_by = getattr(target, 'node_order_by', None)
-        if pos is None:
-            if node_order_by:
-                pos = 'sorted-sibling'
-            else:
-                pos = 'last-sibling'
-        if pos not in ('first-sibling', 'left', 'right', 'last-sibling', 'sorted-sibling'):
-            raise InvalidPosition('Invalid relative position: %s' % (pos,))
-        if node_order_by and pos != 'sorted-sibling':
-            raise InvalidPosition('Must use %s in add_sibling when'
-                                  ' node_order_by is enabled' % ('sorted-sibling',))
-        if pos == 'sorted-sibling' and not node_order_by:
-            raise MissingNodeOrderBy('Missing node_order_by attribute.')
-        return pos
 
+        
+    def get_sorted_pos_queryset_for(self, target, siblings, newobj):
+        """
+        :returns: The position a new node will be inserted related to the
+        current node, and also a queryset of the nodes that must be moved
+        to the right. Called only for Node models with :attr:`node_order_by`
 
-    def _fix_move_opts(self, target, pos):
+        This function was taken from django-mptt (BSD licensed) by Jonathan Buchanan:
+        http://code.google.com/p/django-mptt/source/browse/trunk/mptt/signals.py?spec=svn100&r=100#12
         """
-        prepare the pos var for the move method
-        """
-        node_order_by = getattr(target, 'node_order_by', None)
-        if pos is None:
-            if node_order_by:
-                pos = 'sorted-sibling'
-            else:
-                pos = 'last-sibling'
-        if pos not in ('first-sibling', 'left', 'right', 'last-sibling', 'sorted-sibling',
-                       'first-child', 'last-child', 'sorted-child'):
-            raise InvalidPosition('Invalid relative position: %s' % (pos,))
-        if node_order_by and pos not in ('sorted-child', 'sorted-sibling'):
-            raise InvalidPosition('Must use %s or %s in add_sibling when'
-                                  ' node_order_by is enabled' % ('sorted-sibling',
-                                  'sorted-child'))
-        if pos in ('sorted-child', 'sorted-sibling') and not node_order_by:
-            raise MissingNodeOrderBy('Missing node_order_by attribute.')
-        return pos
+
+        fields, filters = [], []
+        for field in target.node_order_by:
+            value = getattr(newobj, field)
+            filters.append(Q(*
+                [Q(**{f: v}) for f, v in fields] +
+                [Q(**{'%s__gt' % field: value})]))
+            fields.append((field, value))
+        return siblings.filter(reduce(operator.or_, filters))
+        try:
+            newpos = target._get_lastpos_in_path(siblings.all()[0].path)
+        except IndexError:
+            newpos, siblings = None, []
+        return newpos, siblings
