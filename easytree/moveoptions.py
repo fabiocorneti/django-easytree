@@ -4,7 +4,7 @@ class MoveOptions(object):
         self.manager = manager
         self.model = self.manager.model
     
-    def validate_add_sibling_opts(self, target, related, pos):
+    def validate_add_sibling_opts(self, target, related, pos, **kwargs):
         
         node_order_by = getattr(self.model, 'node_order_by', None)
         
@@ -32,7 +32,7 @@ class MoveOptions(object):
 
         return pos
         
-    def validate_move_opts(self, target, related, pos):
+    def validate_move_opts(self, target, related, pos, **kwargs):
         
         node_order_by = getattr(self.model, 'node_order_by', None)
 
