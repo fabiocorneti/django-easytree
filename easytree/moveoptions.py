@@ -1,16 +1,4 @@
 from easytree.exceptions import InvalidMoveToDescendant, MissingNodeOrderBy, InvalidPosition
-from django.utils.translation import ugettext_lazy as _
-
-pos_map = {
-    'first-sibling': _('first sibling'),
-    'left': _('left'),
-    'right': _('right'),
-    'last-sibling': _('last sibling'),
-    'sorted-sibling': _('sorted sibling'),
-    'first-child': _('first child'),
-    'last-child': _('last child'),
-    'sorted-child': _('sorted child')
-}    
 
 class MoveOptions(object):
     
@@ -54,7 +42,7 @@ class MoveOptions(object):
                        'first-child', 'last-child', 'sorted-child'):
             raise InvalidPosition('Invalid relative position: %s' % (pos,))
         if node_order_by and pos not in ('sorted-child', 'sorted-sibling'):
-            raise InvalidPosition('Must use %s or %s in add_sibling when'
+            raise InvalidPosition('Must use %s or %s in move when'
                                   ' node_order_by is enabled' % ('sorted-sibling',
                                   'sorted-child'))
         if pos in ('sorted-child', 'sorted-sibling') and not node_order_by:

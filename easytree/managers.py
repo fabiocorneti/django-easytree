@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models.signals import pre_save, post_save
-from django.db import connection
+from django.db import transaction, connection
 from easytree.moveoptions import MoveOptions
 from django.db.models import Q
 import logging
@@ -175,7 +175,8 @@ class EasyTreeManager(models.Manager):
                   'tree_id': tree_id
               }
         return sql, []
-        
+    
+    @transaction.commit_on_success
     def move(self, target, dest, pos=None):
         """
         Moves the current node and all it's descendants to a new position
@@ -340,7 +341,8 @@ class EasyTreeManager(models.Manager):
                   'tree_id': tree_id
               }
         return sql, []
-
+        
+    @transaction.commit_on_success
     def add_sibling_to(self, target, pos=None, new_object=None, **kwargs):
         """
         Adds a new node as a sibling to the current node object.
