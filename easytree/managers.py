@@ -13,34 +13,97 @@ def move_post_save(sender, instance, **kwargs):
     
     if relative_to and current_parent:
         logging.debug('move_post_save: moved %s form %s to %s | %s' % (str(instance), str(current_parent), str(relative_to), (relative_position)) )
-        sender.easytree.move(instance, relative_to, pos=relative_position)
+        sender.ojects.move(instance, relative_to, pos=relative_position)
     
     # in case of saving models twice
-    del instance.easytree_relative_to
-    del instance.easytree_relative_position
-    del instance.easytree_current_parent
-
+    instance.easytree_relative_to = None
+    instance.easytree_relative_position = None
+    instance.easytree_current_parent = None
+    
 def calculate_lft_rght(sender, instance, **kwargs):
     
     relative_to = getattr(instance, 'easytree_relative_to', None)
     relative_position = getattr(instance, 'easytree_relative_position', None) 
-    current_parent = sender.easytree.get_parent_for(instance)
+    current_parent = sender.objects.get_parent_for(instance)
     instance.easytree_current_parent = current_parent
     
     if relative_to and not current_parent:
         if relative_position in ('first-child', 'last-child', 'sorted-child'):
             logging.debug('calculate_lft_rght: added child to: %s | %s' % (str(relative_to), relative_position))
-            sender.easytree.add_child_to(relative_to, new_object=instance, pos=relative_position)
+            sender.objects.add_child_to(relative_to, new_object=instance, pos=relative_position)
         else:
             logging.debug('calculate_lft_rght: added sibling to: %s | %s' % (str(relative_to), relative_position))
-            sender.easytree.add_sibling_to(relative_to, new_object=instance, pos=relative_position)
+            sender.objects.add_sibling_to(relative_to, new_object=instance, pos=relative_position)
                   
     if not relative_to and not current_parent:
          logging.debug('calculate_lft_rght: added new root: %s | %s' % (str(instance), relative_position))
-         sender.easytree.add_root(new_object=instance)
-        
+         sender.objects.add_root(new_object=instance)
+         
+class EasyTreeQuerySet(models.query.QuerySet):
+    """
+    Custom queryset for the tree node manager.
+
+    Needed only for the customized delete method.
+    """
+
+    def delete(self, removed_ranges=None):
+        """
+        Custom delete method, will remove all descendant nodes to ensure a
+        consistent tree (no orphans)
+
+        :returns: ``None``
+        """
+        if removed_ranges is not None:
+            # we already know the children, let's call the default django
+            # delete method and let it handle the removal of the user's
+            # foreign keys...
+            super(EasyTreeQuerySet, self).delete()
+            cursor = connection.cursor()
+
+            # Now closing the gap (Celko's trees book, page 62)
+            # We do this for every gap that was left in the tree when the nodes
+            # were removed.  If many nodes were removed, we're going to update
+            # the same nodes over and over again. This would be probably
+            # cheaper precalculating the gapsize per intervals, or just do a
+            # complete reordering of the tree (uses COUNT)...
+            for tree_id, drop_lft, drop_rgt in sorted(removed_ranges, reverse=True):
+                sql, params = self.model.objects._get_close_gap_sql(drop_lft, drop_rgt,
+                                                            tree_id)
+                cursor.execute(sql, params)
+        else:
+            # we'll have to manually run through all the nodes that are going
+            # to be deleted and remove nodes from the list if an ancestor is
+            # already getting removed, since that would be redundant
+            removed = {}
+            for node in self.order_by('tree_id', 'lft'):
+                found = False
+                for rid, rnode in removed.items():
+                    if self.model.objects(is_descendant_of(node, rnode)):
+                        found = True
+                        break
+                if not found:
+                    removed[node.id] = node
+
+            # ok, got the minimal list of nodes to remove...
+            # we must also remove their descendants
+            toremove = []
+            ranges = []
+            for id, node in removed.items():
+                toremove.append(
+                  Q(lft__range=(node.lft, node.rgt))&Q(tree_id=node.tree_id))
+                ranges.append((node.tree_id, node.lft, node.rgt))
+            if toremove:
+                self.model.objects.filter(
+                    reduce(operator.or_, toremove)).delete(removed_ranges=ranges)
+                    
 class EasyTreeManager(models.Manager):
     
+    def get_query_set(self):
+        """
+        Sets the custom queryset as the default.
+        """
+        return EasyTreeQuerySet(self.model)
+        
     def __init__(self, *args, **kwargs):
         
         super(EasyTreeManager, self).__init__(*args, **kwargs)
@@ -48,7 +111,6 @@ class EasyTreeManager(models.Manager):
         move_opts_class = kwargs.get('move_opts_class', MoveOptions)
         self.move_opts = move_opts_class(self)
         
-    
     def contribute_to_class(self, model, name):
         super(EasyTreeManager, self).contribute_to_class(model, name)
         if model == self.get_first_model():

@@ -8,9 +8,7 @@ class ExampleNode(BaseEasyTree):
         max_length=60
     )
     
-    objects = models.Manager()
-    
-    easytree = EasyTreeManager()
+    objects = EasyTreeManager()
     
     class Meta:
         ordering=('lft',)

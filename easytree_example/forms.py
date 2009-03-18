@@ -45,23 +45,23 @@ class ExampleNodeModelForm(forms.ModelForm):
                     raise forms.ValidationError, "Pick a related node and position or create this as a new root node."
                 else:
                     try:
-                        ExampleNode.easytree.move_opts.validate_root(None, relative_to, pos=relative_position)
+                        ExampleNode.objects.move_opts.validate_root(None, relative_to, pos=relative_position)
                     except Exception, e:
                         raise forms.ValidationError, e.message
             else:
                 if relative_position in ('last-child', 'first-child', 'sorted-child'):
                     try:
-                        ExampleNode.easytree.move_opts.validate_child(None, relative_to, pos=relative_position)
+                        ExampleNode.objects.move_opts.validate_child(None, relative_to, pos=relative_position)
                     except Exception, e:
                         raise forms.ValidationError, e.message
                 else:
                     try:
-                        ExampleNode.easytree.move_opts.validate_sibling(None, relative_to, pos=relative_position)
+                        ExampleNode.objects.move_opts.validate_sibling(None, relative_to, pos=relative_position)
                     except Exception, e:
                         raise forms.ValidationError, e.message
         else:
             try:
-                ExampleNode.easytree.move_opts.validate_move(self.instance, relative_to, pos=relative_position)
+                ExampleNode.objects.move_opts.validate_move(self.instance, relative_to, pos=relative_position)
             except Exception, e:
                 raise forms.ValidationError, e.message        
         

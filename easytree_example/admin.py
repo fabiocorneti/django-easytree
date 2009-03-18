@@ -13,7 +13,7 @@ class ExampleNodeAdmin(admin.ModelAdmin):
     def root_node_exists(self):
         
         try:
-            root_node = ExampleNode.easytree.get_root_nodes()[0]
+            root_node = ExampleNode.objects.get_root_nodes()[0]
         except IndexError:
             root_node = None
             
