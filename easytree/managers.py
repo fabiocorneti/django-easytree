@@ -78,7 +78,7 @@ class EasyTreeQuerySet(models.query.QuerySet):
             for node in self.order_by('tree_id', 'lft'):
                 found = False
                 for rid, rnode in removed.items():
-                    if self.model.objects(is_descendant_of(node, rnode)):
+                    if self.model.objects.is_descendant_of(node, rnode):
                         found = True
                         break
                 if not found:
