@@ -18,17 +18,15 @@ class ExampleNodeModelForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super(ExampleNodeModelForm, self).__init__(*args, **kwargs)
-        if self.instance.pk:
-            if getattr(self.instance, 'node_order_by', None):
-                relative_positions_choices = ('sorted-sibling', 'sorted-child')
-            else:
-                relative_positions_choices = pos_map.keys()
-        relative_positions_choices = ('sorted-sibling', 'sorted-child')
 
+        if getattr(self.instance, 'node_order_by', None):
+            relative_positions_choices = ('sorted-sibling', 'sorted-child')
+        else:
+            relative_positions_choices = [k for k in pos_map.keys() if k not in ('sorted-sibling', 'sorted-child')]
+                
         self.fields['relative_position'] = forms.ChoiceField(choices=[(k, v) for k, v in pos_map.items() if k in relative_positions_choices])
         
-    relative_position =  forms.ChoiceField()
-    create_as_root_node = forms.BooleanField(required=False)
+    create_as_root_node = forms.BooleanField(required=False, help_text='Check this box if you want this to be a new root node.')
     relative_to = forms.ModelChoiceField(queryset=ExampleNode.objects.all(), required=False)
     
     class Meta:
@@ -45,7 +43,7 @@ class ExampleNodeModelForm(forms.ModelForm):
             except IndexError:
                 if not create_as_root_node:
                     raise forms.ValidationError, "No root node exists"
-        
+                            
         return parent
         
     def save(self, **kwargs):

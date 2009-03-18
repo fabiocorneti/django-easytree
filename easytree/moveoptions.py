@@ -34,7 +34,7 @@ class MoveOptions(object):
 
         return pos
         
-    def validate_move_opts(self, target, related, pos, **kwargs):
+    def validate_move(self, target, related, pos, **kwargs):
         
         node_order_by = getattr(self.model, 'node_order_by', None)
 
@@ -48,7 +48,34 @@ class MoveOptions(object):
         if pos in ('sorted-child', 'sorted-sibling') and not node_order_by:
             raise MissingNodeOrderBy('Missing node_order_by attribute.')
             
-    def fix_move_opts(self, target, related, pos):
+        parent = None
+        dest = related
+        
+        if pos in ('first-child', 'last-child', 'sorted-child'):
+            # moving to a child
+            if self.manager.is_leaf(dest):
+                parent = dest
+                pos = 'last-child'
+            else:
+                dest = self.manager.get_last_child_for(dest)
+                pos = {'first-child': 'first-sibling',
+                       'last-child': 'last-sibling',
+                       'sorted-child': 'sorted-sibling'}[pos]
+                       
+        if self.manager.is_descendant_of(dest, target):
+            raise InvalidMoveToDescendant("Can't move node to a descendant.")
+        
+        self.process_validators(target, dest, related, pos, **kwargs)
+        
+        return (pos, dest, parent)
+
+    def process_validators(self, target, related, realrelated, pos, **kwargs):
+        #for v in self.manager.validators:
+        #    validator = v()
+        #    validator(target, related, realrelated, pos, **kwargs) 
+        pass
+
+    def fix_move_vars(self, target, related, pos):
         """
         prepare the pos var for the move method
         """
@@ -60,6 +87,4 @@ class MoveOptions(object):
             else:
                 pos = 'last-sibling'
                 
-        self.validate_move_opts(target, related, pos)
-        
-        return pos
+        return self.validate_move(target, related, pos)

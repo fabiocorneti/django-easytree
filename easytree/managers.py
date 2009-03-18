@@ -82,12 +82,12 @@ class EasyTreeManager(models.Manager):
             return cls.objects.none()
         return self.get_tree(target).exclude(pk=target.id)
 
-    def is_descendant(self, target, node):
+    def is_descendant_of(self, target, node):
         """
         :returns: ``True`` if the node if a descendant of another node given
             as an argument, else, returns ``False``
 
-        See: :meth:`treebeard.Node.is_descendant_of_of`
+        See: :meth:`treebeard.Node.is_descendant_of`
         """
         return target.tree_id == node.tree_id and \
                target.lft > node.lft and \
@@ -184,26 +184,13 @@ class EasyTreeManager(models.Manager):
 
         See: :meth:`treebeard.Node.move`
         """
-
-        pos = self.move_opts.fix_move_opts(target, dest, pos)
-        cls = self.get_first_model()
-
+        
         stmts = []
         parent = None
+        
+        cls = self.get_first_model()
 
-        if pos in ('first-child', 'last-child', 'sorted-child'):
-            # moving to a child
-            if self.is_leaf(dest):
-                parent = dest
-                pos = 'last-child'
-            else:
-                dest = self.get_last_child_for(dest)
-                pos = {'first-child': 'first-sibling',
-                       'last-child': 'last-sibling',
-                       'sorted-child': 'sorted-sibling'}[pos]
-
-        if self.is_descendant_of(dest, target):
-            raise InvalidMoveToDescendant("Can't move node to a descendant.")
+        pos, dest, parent = self.move_opts.fix_move_vars(target, dest, pos)
 
         if target == dest and (
               (pos == 'left') or \
@@ -343,7 +330,7 @@ class EasyTreeManager(models.Manager):
         return sql, []
         
     @transaction.commit_on_success
-    def add_sibling_to(self, target, pos=None, new_object=None, **kwargs):
+    def add_sibling_to(self, target, pos=None, new_object=None):
         """
         Adds a new node as a sibling to the current node object.
 
@@ -354,7 +341,6 @@ class EasyTreeManager(models.Manager):
         pos = self.move_opts.fix_add_sibling_opts(new_object, target, pos)
 
         # creating a new object
-        new_object = new_object or cls(**kwargs)
         new_object.depth = target.depth
 
         sql = None
@@ -435,7 +421,7 @@ class EasyTreeManager(models.Manager):
             cursor = connection.cursor()
             cursor.execute(sql, params)
         
-    def add_child_to(self, target, new_object=None, **kwargs):
+    def add_child_to(self, target, new_object=None, pos=None):
         """
         Adds a child to the node.
 
@@ -446,34 +432,33 @@ class EasyTreeManager(models.Manager):
         if not self.is_leaf(target):
             # there are child nodes, delegate insertion to add_sibling
             if getattr(target, 'node_order_by', None):
-                kwargs['pos'] = 'sorted-sibling'
+                pos = 'sorted-sibling'
             else:
-                kwargs['pos'] = 'last-sibling'
+                pos = 'last-sibling'
             last_child = self.get_last_child_for(target)
             tmp = cls.objects.get(pk=target.id)
             last_child._cached_parent_obj = target
-            return self.add_sibling_to(last_child, new_object=new_object, **kwargs)
+            return self.add_sibling_to(last_child, new_object=new_object, pos=pos)
 
         # we're adding the first child of this node
         sql, params = self._move_right(target.tree_id, target.rgt, False,
                                                  2)
 
         # creating a new object
-        newobj = new_object or cls(**kwargs)
-        newobj.tree_id = target.tree_id
-        newobj.depth = target.depth + 1
-        newobj.lft = target.lft+1
-        newobj.rgt = target.lft+2
+        new_object.tree_id = target.tree_id
+        new_object.depth = target.depth + 1
+        new_object.lft = target.lft+1
+        new_object.rgt = target.lft+2
 
         # this is just to update the cache
         target.rgt = target.rgt+2
 
-        newobj._cached_parent_obj = target
+        new_object._cached_parent_obj = target
 
         cursor = connection.cursor()
         cursor.execute(sql, params)
                     
-    def add_root(self, new_object=None, **kwargs):
+    def add_root(self, new_object=None):
         """
         Adds a root node to the tree.
 
@@ -487,7 +472,7 @@ class EasyTreeManager(models.Manager):
         if last_root and getattr(last_root, 'node_order_by', None):
             # there are root nodes and node_order_by has been set
             # delegate sorted insertion to add_sibling
-            return self.add_sibling_to(last_root, 'sorted-sibling', new_object=new_object, **kwargs)
+            return self.add_sibling_to(last_root, 'sorted-sibling', new_object=new_object)
 
         if last_root:
             # adding the new root node as the last one
@@ -496,7 +481,7 @@ class EasyTreeManager(models.Manager):
             # adding the first root node
             newtree_id = 1
 
-        new_object = new_object or cls(**kwargs)
+        new_object
         new_object.depth = 1
         new_object.tree_id = newtree_id
         new_object.lft = 1
