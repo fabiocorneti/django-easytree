@@ -1,4 +1,5 @@
 from django.db import models
+import logging
 
 class BaseEasyTree(models.Model):
     
@@ -9,3 +10,8 @@ class BaseEasyTree(models.Model):
     
     class Meta:
         abstract = True
+
+    def delete(self):
+        self.__class__.objects.filter(pk=self.pk).delete()
+        super(BaseEasyTree, self).delete()            
+        

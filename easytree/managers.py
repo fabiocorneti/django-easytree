@@ -4,6 +4,7 @@ from django.db import transaction, connection
 from easytree.moveoptions import MoveOptions
 from django.db.models import Q
 import logging
+import operator
 
 def move_post_save(sender, instance, **kwargs):
     
@@ -83,7 +84,7 @@ class EasyTreeQuerySet(models.query.QuerySet):
                         break
                 if not found:
                     removed[node.id] = node
-
+            logging.debug('removed: %s' % str(removed))
             # ok, got the minimal list of nodes to remove...
             # we must also remove their descendants
             toremove = []
