@@ -6,14 +6,13 @@ from django.db.models import Q
 import logging
 import operator
 
-def move_post_save(sender, instance, **kwargs):
+def move_post_save(sender, instance, created, **kwargs):
     
     relative_to = getattr(instance, 'easytree_relative_to', None)
     relative_position = getattr(instance, 'easytree_relative_position', None) 
-    current_parent = getattr(instance, 'easytree_current_parent', None)
     
-    if relative_to and current_parent:
-        logging.debug('move_post_save: moved %s form %s to %s | %s' % (str(instance), str(current_parent), str(relative_to), (relative_position)) )
+    if relative_to and not created:
+        logging.debug('move_post_save: moved %s to %s | %s' % (str(instance), str(relative_to), (relative_position)) )
         sender.objects.move(instance, relative_to, pos=relative_position)
     
     # in case of saving models twice
@@ -25,21 +24,21 @@ def calculate_lft_rght(sender, instance, **kwargs):
     
     relative_to = getattr(instance, 'easytree_relative_to', None)
     relative_position = getattr(instance, 'easytree_relative_position', None) 
-    current_parent = sender.objects.get_parent_for(instance)
-    instance.easytree_current_parent = current_parent
     
-    if relative_to and not current_parent:
-        if relative_position in ('first-child', 'last-child', 'sorted-child'):
-            logging.debug('calculate_lft_rght: added child to: %s | %s' % (str(relative_to), relative_position))
-            sender.objects.add_child_to(relative_to, new_object=instance, pos=relative_position)
-        else:
-            logging.debug('calculate_lft_rght: added sibling to: %s | %s' % (str(relative_to), relative_position))
-            sender.objects.add_sibling_to(relative_to, new_object=instance, pos=relative_position)
-                  
-    if not relative_to and not current_parent:
-         logging.debug('calculate_lft_rght: added new root: %s | %s' % (str(instance), relative_position))
-         sender.objects.add_root(new_object=instance)
-         
+    if not instance.pk:
+        
+        if relative_to:
+            if relative_position in ('first-child', 'last-child', 'sorted-child'):
+                logging.debug('calculate_lft_rght: added child to: %s | %s' % (str(relative_to), relative_position))
+                sender.objects.add_child_to(relative_to, new_object=instance, pos=relative_position)
+            else:
+                logging.debug('calculate_lft_rght: added sibling to: %s | %s' % (str(relative_to), relative_position))
+                sender.objects.add_sibling_to(relative_to, new_object=instance, pos=relative_position)
+                      
+        if not relative_to:
+             logging.debug('calculate_lft_rght: added new root: %s | %s' % (str(instance), relative_position))
+             sender.objects.add_root(new_object=instance)
+
 class EasyTreeQuerySet(models.query.QuerySet):
     """
     Custom queryset for the tree node manager.
