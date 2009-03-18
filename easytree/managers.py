@@ -203,7 +203,7 @@ class EasyTreeManager(models.Manager):
 
         if pos == 'sorted-sibling':
             siblings = list(self.get_sorted_pos_queryset_for(dest, \
-                self.get_siblings_for(dest, self), target))
+                self.get_siblings_for(dest), target))
             if siblings:
                 pos = 'left'
                 dest = siblings[0]
@@ -338,7 +338,7 @@ class EasyTreeManager(models.Manager):
         """
         cls = self.get_first_model()
         
-        pos = self.move_opts.fix_add_sibling_opts(new_object, target, pos)
+        pos = self.move_opts.fix_add_sibling_vars(new_object, target, pos)
 
         # creating a new object
         new_object.depth = target.depth
@@ -436,7 +436,6 @@ class EasyTreeManager(models.Manager):
             else:
                 pos = 'last-sibling'
             last_child = self.get_last_child_for(target)
-            tmp = cls.objects.get(pk=target.id)
             last_child._cached_parent_obj = target
             return self.add_sibling_to(last_child, new_object=new_object, pos=pos)
 
