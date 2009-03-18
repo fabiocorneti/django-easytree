@@ -45,7 +45,7 @@ class ExampleNodeModelForm(forms.ModelForm):
                     raise forms.ValidationError, "Pick a related node and position or create this as a new root node."
                 else:
                     try:
-                        ExampleNode.easytree.move_opts.validate_root(relative_to, pos=relative_position)
+                        ExampleNode.easytree.move_opts.validate_root(None, relative_to, pos=relative_position)
                     except Exception, e:
                         raise forms.ValidationError, e.message
             else:
@@ -69,9 +69,11 @@ class ExampleNodeModelForm(forms.ModelForm):
         
     def save(self, **kwargs):
         instance = super(ExampleNodeModelForm, self).save(commit=False)
-        parent = self.cleaned_data.get('relative_to', None)
-        if parent:
-            instance.parent = parent
+        relative_to = self.cleaned_data.get('relative_to', None)
+        relative_position = self.cleaned_data.get('relative_position')
+        if relative_to:
+            instance.easytree_relative_position = relative_position
+            instance.easytree_relative_to = relative_to
         if kwargs.get('commit', False):
             instance.save() 
         return instance

@@ -26,7 +26,7 @@ class ExampleNodeAdmin(admin.ModelAdmin):
             
             if not self.root_node_exists():
                 return (
-                    (None, {'fields': ('title', 'create_as_root_node') } ),
+                    (None, {'fields': ('title', 'relative_position', 'create_as_root_node') } ),
                 )
             else:
                 return (

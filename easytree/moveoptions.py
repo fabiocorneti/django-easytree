@@ -6,7 +6,7 @@ class MoveOptions(object):
         self.manager = manager
         self.model = self.manager.model
         
-    def validate_add_root(self, target, related, pos=None, **kwargs):
+    def validate_root(self, target, related, pos=None, **kwargs):
         
         node_order_by = getattr(self.model, 'node_order_by', None)
         
@@ -20,7 +20,7 @@ class MoveOptions(object):
         
         self.process_validators(target, related, related, pos=None, func='add_root', **kwargs)
             
-    def validate_add_sibling(self, target, related, pos=None, **kwargs):
+    def validate_sibling(self, target, related, pos=None, **kwargs):
         
         node_order_by = getattr(self.model, 'node_order_by', None)
         
@@ -34,7 +34,7 @@ class MoveOptions(object):
         
         self.process_validators(target, related, related, pos=None, func='add_sibling', **kwargs)
         
-    def validate_add_child(self, target, related, pos=None, **kwargs):
+    def validate_child(self, target, related, pos=None, **kwargs):
         
         node_order_by = getattr(self.model, 'node_order_by', None)
         
@@ -95,7 +95,7 @@ class MoveOptions(object):
             else:
                 pos = 'last-sibling'
                 
-        self.validate_add_sibling_opts(target, related, pos)
+        self.validate_sibling(target, related, pos)
 
         return pos
         
