@@ -13,7 +13,7 @@ def move_post_save(sender, instance, **kwargs):
     
     if relative_to and current_parent:
         logging.debug('move_post_save: moved %s form %s to %s | %s' % (str(instance), str(current_parent), str(relative_to), (relative_position)) )
-        sender.ojects.move(instance, relative_to, pos=relative_position)
+        sender.objects.move(instance, relative_to, pos=relative_position)
     
     # in case of saving models twice
     instance.easytree_relative_to = None
