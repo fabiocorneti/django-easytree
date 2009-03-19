@@ -422,7 +422,6 @@ class EasyTreeManager(models.Manager):
         new_object.depth = target.depth
 
         sql = None
-
         if self.is_root(target):
             new_object.lft = 1
             new_object.rgt = 2
@@ -435,7 +434,7 @@ class EasyTreeManager(models.Manager):
                 else:
                     pos = 'last-sibling'
 
-            last_root = cls.get_last_root_node()
+            last_root = self.get_last_root_node()
             if pos == 'last-sibling' \
                   or (pos == 'right' and target == last_root):
                 new_object.tree_id = last_root.tree_id + 1
@@ -443,7 +442,7 @@ class EasyTreeManager(models.Manager):
                 newpos = {'first-sibling': 1,
                           'left': target.tree_id,
                           'right': target.tree_id + 1}[pos]
-                sql, params = self._move_tree_right(target, newpos)
+                sql, params = self._move_tree_right(newpos)
 
                 new_object.tree_id = newpos
         else:
@@ -617,7 +616,7 @@ class EasyTreeManager(models.Manager):
 
            node.is_root()
         """
-        return self.get_root(target) == self
+        return self.get_root(target) == target
 
     def is_leaf(self, target):
         """

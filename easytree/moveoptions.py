@@ -10,14 +10,6 @@ class MoveOptions(object):
         
         node_order_by = getattr(self.model, 'node_order_by', None)
         
-        if pos not in ('first-sibling', 'left', 'right', 'last-sibling', 'sorted-sibling'):
-            raise InvalidPosition('Invalid relative position: %s' % (pos,))
-        if node_order_by and pos != 'sorted-sibling':
-            raise InvalidPosition('Must use %s in add_sibling when'
-                                  ' node_order_by is enabled' % ('sorted-sibling',))
-        if pos == 'sorted-sibling' and not node_order_by:
-            raise MissingNodeOrderBy('Missing node_order_by attribute.')
-        
         self.process_validators(target, related, related, pos=None, func='add_root', **kwargs)
             
     def validate_sibling(self, target, related, pos=None, **kwargs):
