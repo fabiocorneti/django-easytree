@@ -1,4 +1,5 @@
 from easytree.exceptions import InvalidMoveToDescendant, MissingNodeOrderBy, InvalidPosition
+import logging
 
 class MoveOptions(object):
     
