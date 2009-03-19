@@ -12,7 +12,7 @@ def move_post_save(sender, instance, created, **kwargs):
     relative_position = getattr(instance, 'easytree_relative_position', None) 
     
     if relative_to and not created:
-        logging.debug('move_post_save: moved %s to %s | %s' % (str(instance), str(relative_to), (relative_position)) )
+        logging.debug(u'move_post_save: moved %s to %s | %s' % (unicode(instance), unicode(relative_to), (relative_position)) )
         sender.objects.move(instance, relative_to, pos=relative_position)
     
     # in case of saving models twice
@@ -29,14 +29,14 @@ def calculate_lft_rght(sender, instance, **kwargs):
         
         if relative_to:
             if relative_position in ('first-child', 'last-child', 'sorted-child'):
-                logging.debug('calculate_lft_rght: added child to: %s | %s' % (str(relative_to), relative_position))
+                logging.debug(u'calculate_lft_rght: added child to: %s | %s' % (unicode(relative_to), relative_position))
                 sender.objects.add_child_to(relative_to, new_object=instance, pos=relative_position)
             else:
-                logging.debug('calculate_lft_rght: added sibling to: %s | %s' % (str(relative_to), relative_position))
+                logging.debug(u'calculate_lft_rght: added sibling to: %s | %s' % (unicode(relative_to), relative_position))
                 sender.objects.add_sibling_to(relative_to, new_object=instance, pos=relative_position)
                       
         if not relative_to:
-             logging.debug('calculate_lft_rght: added new root: %s | %s' % (str(instance), relative_position))
+             logging.debug('calculate_lft_rght: added new root: %s | %s' % (unicode(instance), relative_position))
              sender.objects.add_root(new_object=instance)
 
 class EasyTreeQuerySet(models.query.QuerySet):
@@ -206,6 +206,17 @@ class EasyTreeManager(models.Manager):
             return self.get_root_nodes()
         return self.get_children_for(self.get_parent_for(target, True))
         
+    def get_first_sibling_for(self, target):
+        """
+        :returns: The leftmost node's sibling, can return the node itself if it
+            was the leftmost sibling.
+
+        Example::
+         
+           node.get_first_sibling()
+        """
+        return self.get_siblings_for(target)[0]
+    
     def get_root_nodes(self):
         cls = self.get_first_model()
         """
@@ -276,7 +287,7 @@ class EasyTreeManager(models.Manager):
               (pos in ('right', 'last-sibling') and \
                 dest == self.get_last_sibling(dest)) or \
               (pos == 'first-sibling' and \
-                dest == self.get_first_sibling(dest))):
+                dest == self.get_first_sibling_for(dest))):
             # special cases, not actually moving the node so no need to UPDATE
             return
 

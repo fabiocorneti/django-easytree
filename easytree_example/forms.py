@@ -35,10 +35,11 @@ class ExampleNodeModelForm(forms.ModelForm):
     class Meta:
         model = ExampleNode
         
-    def clean_relative_to(self):
-        
-        relative_to = self.cleaned_data.get('relative_to')
-        relative_position = self.cleaned_data.get('relative_position', 'first-sibling')
+    def clean(self):
+        cleaned_data = self.cleaned_data
+
+        relative_to = cleaned_data.get('relative_to')
+        relative_position = cleaned_data.get('relative_position')
         
         if not self.instance.pk:
             
@@ -72,7 +73,9 @@ class ExampleNodeModelForm(forms.ModelForm):
             except Exception, e:
                 raise forms.ValidationError, e.message        
         
-        return relative_to
+        cleaned_data['relative_to'] = relative_to
+        
+        return cleaned_data
         
     def save(self, **kwargs):
         instance = super(ExampleNodeModelForm, self).save(commit=False)
