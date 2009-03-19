@@ -19,6 +19,26 @@ class ExampleNodeAdmin(admin.ModelAdmin):
             
         return root_node
 
- 
+    def get_fieldsets(self, request, obj=None):
+        
+        if not obj:
+            
+            if not self.root_node_exists():
+                return (
+                    (None, {'fields': ('title', ), 'description': 'This node will become the first root node.' } ),
+                )
+            else:
+                return (
+                    (None, {'fields': ('title', ) }),
+                    ('Position', {'fields': ('relative_position', 'relative_to'), 
+                        'description': 'Select where in the tree you want this node located.'
+                    } )
+                )
+        else:
+            return (
+                (None, {'fields': ('title', ) }),
+                ('Move', {'fields': ('relative_position', 'relative_to'), 'description': 'Only fill theese fields if you want to move this node.', 'classes': 'collapse'} )
+            )
+                
 
 admin.site.register(ExampleNode, ExampleNodeAdmin)

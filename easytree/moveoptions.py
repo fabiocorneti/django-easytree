@@ -75,6 +75,13 @@ class MoveOptions(object):
         
         return (pos, dest, parent)                
         
+    def process_validators(self, target, related, realrelated, pos, func=None, **kwargs):
+        for v in getattr(self.manager, 'validators', []):
+            validator = v()
+            validator_func = getattr(validator, 'validate_%s' % func)
+            if validator_func:
+                validator_func(target, related, realrelated, pos, **kwargs) 
+                
     def fix_add_sibling_vars(self, target, related, pos):
         """
         prepare the pos variable for the add_sibling method
@@ -89,15 +96,8 @@ class MoveOptions(object):
                 
         self.validate_sibling(target, related, pos)
 
-        return pos
-        
-    def process_validators(self, target, related, realrelated, pos, func=None, **kwargs):
-        for v in getattr(self.manager, 'validators', []):
-            validator = v()
-            validator_func = getattr(validator, 'validate_%s' % func)
-            if validator_func:
-                validator_func(target, related, realrelated, pos, **kwargs) 
-        
+        return pos   
+             
     def fix_move_vars(self, target, related, pos):
         """
         prepare the pos var for the move method

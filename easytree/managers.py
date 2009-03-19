@@ -104,10 +104,11 @@ class EasyTreeManager(models.Manager):
         """
         return EasyTreeQuerySet(self.model)
         
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, validators=[], **kwargs):
         
         super(EasyTreeManager, self).__init__(*args, **kwargs)
 
+        self.validators = validators
         move_opts_class = kwargs.get('move_opts_class', MoveOptions)
         self.move_opts = move_opts_class(self)
         
@@ -593,7 +594,6 @@ class EasyTreeManager(models.Manager):
         """
         return target.depth
 
-
     def get_root(self, target):
         """
         :returns: the root node for the current node object.
@@ -646,8 +646,6 @@ class EasyTreeManager(models.Manager):
             return self.get_children_for(target).reverse()[0]
         except IndexError:
             return None
-            
-
         
     def get_sorted_pos_queryset_for(self, target, siblings, newobj):
         """
