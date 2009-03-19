@@ -104,11 +104,11 @@ class EasyTreeManager(models.Manager):
         """
         return EasyTreeQuerySet(self.model)
         
-    def __init__(self, *args, validators=[], **kwargs):
+    def __init__(self, *args, **kwargs):
         
         super(EasyTreeManager, self).__init__(*args, **kwargs)
 
-        self.validators = validators
+        self.validators = kwargs.get('validators', [])
         move_opts_class = kwargs.get('move_opts_class', MoveOptions)
         self.move_opts = move_opts_class(self)
         
