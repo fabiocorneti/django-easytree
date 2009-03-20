@@ -14,6 +14,8 @@ class ExampleNodeAdmin(admin.ModelAdmin):
 
     list_filter = ('tree_id',)
 
+    change_list_template = 'admin/easytree_change_list.html'
+
     def root_node_exists(self):
         
         try:
