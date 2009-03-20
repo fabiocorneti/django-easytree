@@ -11,7 +11,17 @@
             lvl = i
             if (item.hasClass('level_' + i)) break;
         }
-        return parseInt(lvl)
+        return lvl
+    }
+    
+    function alter_depth(item, diffdepth) {
+        var fromdepth = find_depth(item)
+        var todepth = fromdepth + diffdepth
+        item.removeClass('level_' + fromdepth)
+        item.addClass('level_' + todepth)
+        var depthstr = ''
+        for (var i=1; i < todepth; i++) depthstr += '&gt;&gt;&gt;'
+        $('.display_indent', item).html(depthstr)
     }
 
     $(document).ready(function() {
@@ -20,7 +30,6 @@
             var belowdepth = find_depth($(this))
             var curitem = $(this).next()
             while(curitem.get(0) && find_depth(curitem)>belowdepth) {
-                alert(find_depth(curitem))
                 curitem.addClass('marked')
                 curitem=curitem.next()
             }

@@ -14,5 +14,6 @@ class ExampleNode(BaseEasyTree):
         ordering=('tree_id', 'lft')
     
     def __unicode__(self):
-        return '%s %s' % (u'>>>' * ((self.depth or 1) -1), self.title)
+        return '<span class="display_indent">%s</span> %s' % (u'&gt;&gt;&gt;' * ((self.depth or 1) -1), self.title)
+    __unicode__.allow_tags = True
     
