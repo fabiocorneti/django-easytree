@@ -11,7 +11,7 @@ class ExampleNode(BaseEasyTree):
     objects = EasyTreeManager()
     
     class Meta:
-        ordering=('lft',)
+        ordering=('tree_id', 'lft')
     
     def __unicode__(self):
         return '%s %s' % (u'>>>' * ((self.depth or 1) -1), self.title)

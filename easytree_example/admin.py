@@ -9,9 +9,9 @@ class ExampleNodeAdmin(admin.ModelAdmin):
     exclude = ('tree_id', 'depth', 'lft', 'rgt')
 
     list_display = ('__unicode__', 'lft', 'rgt', 'tree_id')
-    
+
     ordering = ('tree_id', 'lft')
-    
+
     def root_node_exists(self):
         
         try:
@@ -32,14 +32,14 @@ class ExampleNodeAdmin(admin.ModelAdmin):
             else:
                 return (
                     (None, {'fields': ('title', ) }),
-                    ('Position', {'fields': ('relative_position', 'relative_to'), 
+                    ('Position', {'fields': ('relative_to', 'relative_position'), 
                         'description': 'Select where in the tree you want this node located.'
                     } )
                 )
         else:
             return (
                 (None, {'fields': ('title', ) }),
-                ('Move', {'fields': ('relative_position', 'relative_to'), 'description': 'Only fill theese fields if you want to move this node.', 'classes': 'collapse'} )
+                ('Move', {'fields': ('relative_to', 'relative_position'), 'description': 'Only fill these fields if you want to move this node.', 'classes': 'collapse'} )
             )
                 
 

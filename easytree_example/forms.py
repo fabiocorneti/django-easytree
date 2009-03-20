@@ -30,7 +30,7 @@ class ExampleNodeModelForm(forms.ModelForm):
         )
         
     relative_position = forms.ChoiceField(required=False)
-    relative_to = forms.ModelChoiceField(queryset=ExampleNode.objects.all(), required=False)
+    relative_to = forms.ModelChoiceField(queryset=ExampleNode.objects.order_by('tree_id', 'lft'), required=False)
     
     class Meta:
         model = ExampleNode
@@ -67,11 +67,11 @@ class ExampleNodeModelForm(forms.ModelForm):
                         raise forms.ValidationError, e.message
                         
         else:
-            
-            try:
-                ExampleNode.objects.move_opts.validate_move(self.instance, relative_to, pos=relative_position)
-            except Exception, e:
-                raise forms.ValidationError, e.message        
+            if relative_to:
+                try:
+                    ExampleNode.objects.move_opts.validate_move(self.instance, relative_to, pos=relative_position)
+                except Exception, e:
+                    raise forms.ValidationError, e.message        
         
         cleaned_data['relative_to'] = relative_to
         
