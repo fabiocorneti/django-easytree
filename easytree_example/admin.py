@@ -10,7 +10,7 @@ class ExampleNodeAdmin(admin.ModelAdmin):
 
     list_display = ('__unicode__', 'lft', 'rgt', 'tree_id')
 
-    ordering = ('tree_id', 'lft')
+    ordering = ('lft',)
 
     list_filter = ('tree_id',)
 
