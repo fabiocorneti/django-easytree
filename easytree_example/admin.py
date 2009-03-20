@@ -12,6 +12,8 @@ class ExampleNodeAdmin(admin.ModelAdmin):
 
     ordering = ('tree_id', 'lft')
 
+    list_filter = ('tree_id',)
+
     def root_node_exists(self):
         
         try:
