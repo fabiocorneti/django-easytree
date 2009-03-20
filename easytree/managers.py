@@ -243,29 +243,7 @@ class EasyTreeManager(models.Manager):
             return self.get_root_nodes().reverse()[0]
         except IndexError:
             return None
-            
-    def _get_close_gap_sql(self, drop_lft, drop_rgt, tree_id):
-        cls = self.get_first_model()
-        
-        sql = 'UPDATE %(table)s ' \
-              ' SET lft = CASE ' \
-              '           WHEN lft > %(drop_lft)d ' \
-              '           THEN lft - %(gapsize)d ' \
-              '           ELSE lft END, ' \
-              '     rgt = CASE ' \
-              '           WHEN rgt > %(drop_lft)d ' \
-              '           THEN rgt - %(gapsize)d ' \
-              '           ELSE rgt END ' \
-              ' WHERE (lft > %(drop_lft)d ' \
-              '     OR rgt > %(drop_lft)d) AND '\
-              '     tree_id=%(tree_id)d' % {
-                  'table': cls._meta.db_table,
-                  'gapsize': drop_rgt - drop_lft + 1,
-                  'drop_lft': drop_lft,
-                  'tree_id': tree_id
-              }
-        return sql, []
-    
+
     @transaction.commit_on_success
     def move(self, target, dest, pos=None):
         """
@@ -279,6 +257,7 @@ class EasyTreeManager(models.Manager):
         parent = None
         
         cls = self.get_first_model()
+        logging.debug('%s' %  (target.tree_id,))
 
         pos, dest, parent = self.move_opts.fix_move_vars(target, dest, pos)
 
@@ -384,7 +363,34 @@ class EasyTreeManager(models.Manager):
         sql, params = self._get_close_gap_sql(fromobj.lft,
             fromobj.rgt, fromobj.tree_id)
         cursor.execute(sql, params)
+        
+        logging.debug('%s %s' %  (dest_tree, fromobj.tree_id))
+        if dest_tree != fromobj.tree_id:
+            sql, params = self._move_tree_left(fromobj.tree_id)
+            cursor.execute(sql, params)            
             
+    def _get_close_gap_sql(self, drop_lft, drop_rgt, tree_id):
+        cls = self.get_first_model()
+        
+        sql = 'UPDATE %(table)s ' \
+              ' SET lft = CASE ' \
+              '           WHEN lft > %(drop_lft)d ' \
+              '           THEN lft - %(gapsize)d ' \
+              '           ELSE lft END, ' \
+              '     rgt = CASE ' \
+              '           WHEN rgt > %(drop_lft)d ' \
+              '           THEN rgt - %(gapsize)d ' \
+              '           ELSE rgt END ' \
+              ' WHERE (lft > %(drop_lft)d ' \
+              '     OR rgt > %(drop_lft)d) AND '\
+              '     tree_id=%(tree_id)d' % {
+                  'table': cls._meta.db_table,
+                  'gapsize': drop_rgt - drop_lft + 1,
+                  'drop_lft': drop_lft,
+                  'tree_id': tree_id
+              }
+        return sql, []
+                
     def _move_right(self, tree_id, rgt, lftmove=False, incdec=2):
         cls = self.get_first_model()
 
@@ -418,6 +424,17 @@ class EasyTreeManager(models.Manager):
                   'tree_id': tree_id
               }
         return sql, []
+        
+    def _move_tree_left(self, tree_id):
+        cls = self.get_first_model()
+        
+        sql = 'UPDATE %(table)s ' \
+              ' SET tree_id = tree_id-1 ' \
+              ' WHERE tree_id >= %(tree_id)d' % {
+                  'table': cls._meta.db_table,
+                  'tree_id': tree_id
+              }
+        return sql, []        
         
     @transaction.commit_on_success
     def add_sibling_to(self, target, pos=None, new_object=None):
