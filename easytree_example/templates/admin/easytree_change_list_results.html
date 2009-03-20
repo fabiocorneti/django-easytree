@@ -10,7 +10,7 @@
 </thead>
 <tbody>
 {% for result in results %}
-<tr class="{% cycle 'row1' 'row2' %} result_item level_{{ result.object.depth }}">{% for item in result.items %}{{ item }}{% endfor %}</tr>
+<tr id="object_id_{{ result.object.pk }}" class="{% cycle 'row1' 'row2' %} result_item level_{{ result.object.depth }}">{% for item in result.items %}{{ item }}{% endfor %}</tr>
 {% endfor %}
 </tbody>
 </table>
