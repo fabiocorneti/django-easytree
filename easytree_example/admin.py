@@ -8,7 +8,7 @@ class ExampleNodeAdmin(admin.ModelAdmin):
     
     exclude = ('tree_id', 'depth', 'lft', 'rgt')
 
-    list_display = ('__unicode__', 'lft', 'rgt', 'tree_id')
+    list_display = ('display', 'lft', 'rgt', 'tree_id')
 
     ordering = ('lft',)
 
