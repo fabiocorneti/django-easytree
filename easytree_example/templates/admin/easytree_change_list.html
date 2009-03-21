@@ -25,22 +25,36 @@
         $('.display_indent', item).html(depthstr)
     }
 
-    function make_proxy(item) {
-        var proxytbl = $('<table cellspacing="0"></table>')
-        proxytbl.width(item.closest('table').width())
-        var firstrow = item.clone()
-        var old_tds = $('td', item)
-        var new_tds = $('td', firstrow)
-        for (var i=1;i<old_tds.length;i++) {
-            $(new_tds.get(i)).width($(old_tds.get(i)).width())
-        }
-        firstrow.appendTo(proxytbl)
+    function get_child_nodes(item) {
+        var nodes = []
         var belowdepth = find_depth($(item))
         var curitem = item.next()
         while(curitem.get(0) && find_depth(curitem)>belowdepth) {
-            curitem.clone().removeAttr("id").appendTo(proxytbl)
+            nodes.push(curitem)
             curitem=curitem.next()
         }
+        return nodes
+    }
+
+    function make_proxy(item) {
+        
+        var proxytbl = $('<table cellspacing="0"></table>')
+        proxytbl.width(item.closest('table').width())
+        
+        var firstrow = item.clone()
+        var old_tds = $('td, th', item)
+        var new_tds = $('td, th', firstrow)
+        for (var i=0;i<old_tds.length;i++) {
+            $(new_tds.get(i)).width($(old_tds.get(i)).width())
+        }
+        
+        firstrow.appendTo(proxytbl)
+        
+        var nodes = get_child_nodes(item)
+        $(nodes).each(function(){
+            $(this).clone().removeAttr("id").appendTo(proxytbl)
+        })
+
         return proxytbl
     }
 
@@ -49,13 +63,13 @@
             function helper() {
                 return make_proxy($(this))
             }
-            $(this).draggable({'helper': helper})
-            $(this).droppable({hoverClass: 'marked' })
+            $(this).draggable({'helper': helper, opacity: 0.6})
+            $(this).droppable({hoverClass: 'marked', tolerance: 'pointer' })
         })
     })
 </script>
 <style type="text/css">
-    .marked { background: #ff0000; }
+    .marked { background: #ffcccc; }
 </style>
 
 </head>
