@@ -3,6 +3,7 @@
 
 {% block extrahead %}
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js"></script>
 <script type="text/javascript">
 
     function find_depth(item) {
@@ -24,21 +25,40 @@
         $('.display_indent', item).html(depthstr)
     }
 
+    function make_proxy(item) {
+        var proxytbl = $('<table cellspacing="0"></table>')
+        proxytbl.width(item.closest('table').width())
+        var firstrow = item.clone()
+        var old_tds = $('td', item)
+        var new_tds = $('td', firstrow)
+        for (var i=1;i<old_tds.length;i++) {
+            $(new_tds.get(i)).width($(old_tds.get(i)).width())
+        }
+        firstrow.appendTo(proxytbl)
+        var belowdepth = find_depth($(item))
+        var curitem = item.next()
+        while(curitem.get(0) && find_depth(curitem)>belowdepth) {
+            curitem.clone().removeAttr("id").appendTo(proxytbl)
+            curitem=curitem.next()
+        }
+        return proxytbl
+    }
+
     $(document).ready(function() {
-        $('tr.result_item').bind('click', function(e) {
-            $(this).addClass('marked')
-            var belowdepth = find_depth($(this))
-            var curitem = $(this).next()
-            while(curitem.get(0) && find_depth(curitem)>belowdepth) {
-                curitem.addClass('marked')
-                curitem=curitem.next()
+        $('tr.result_item').each(function() {
+            function helper() {
+                return make_proxy($(this))
             }
+            $(this).draggable({'helper': helper})
+            $(this).droppable({hoverClass: 'marked' })
         })
     })
 </script>
 <style type="text/css">
     .marked { background: #ff0000; }
 </style>
+
+</head>
 {% endblock %}
 
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/changelists.css" />{% endblock %}
