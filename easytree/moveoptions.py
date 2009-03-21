@@ -69,9 +69,13 @@ class MoveOptions(object):
                        'last-child': 'last-sibling',
                        'sorted-child': 'sorted-sibling'}[pos]
                        
+            if dest == target:
+                raise InvalidMoveToDescendant("Can't move node to a descendant.")
+                           
         if self.manager.is_descendant_of(dest, target):
             raise InvalidMoveToDescendant("Can't move node to a descendant.")
-        
+
+            
         self.process_validators(target, dest, related, pos=None, func='move', **kwargs)
         
         return (pos, dest, parent)                
