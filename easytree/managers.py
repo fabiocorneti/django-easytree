@@ -244,7 +244,6 @@ class EasyTreeManager(models.Manager):
         except IndexError:
             return None
 
-    @transaction.commit_on_success
     def move(self, target, dest, pos=None):
         """
         Moves the current node and all it's descendants to a new position
@@ -330,7 +329,7 @@ class EasyTreeManager(models.Manager):
                 sql, params = move_right(dest.tree_id, newpos, True, gap)
 
         if sql:
-            cursor.execute(sql, params)
+            cursor.execute(sql, params)   
 
         # we reload 'self' because lft/rgt may have changed
 
