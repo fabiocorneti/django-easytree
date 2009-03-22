@@ -4,5 +4,4 @@ def get_toplevel_model(model):
         toplevel_model = list(parent_models)[0]
     else:
         toplevel_model = model
-    print toplevel_model
     return toplevel_model

@@ -5,7 +5,7 @@ register = Library()
 def results(cl):
     if cl.formset:
         for res, form in zip(cl.result_list, cl.formset.forms):
-            yield list(items_for_result(cl, res, form))
+            yield {'object': res, 'items': list(items_for_result(cl, res, form))}
     else:
         for res in cl.model.objects.filter(pk__in=[o.pk for o in cl.result_list]).order_by('tree_id', 'lft'):
             yield {'object': res, 'items': list(items_for_result(cl, res, None))}

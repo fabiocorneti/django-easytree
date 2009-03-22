@@ -3,7 +3,9 @@ from easytree.admin import EasyTreeAdmin
 from django.contrib import admin
 
 class ExampleNodeAdmin(EasyTreeAdmin):
-    pass
+    
+    list_display = ('display', 'lft', 'rgt', 'tree_id', 'title')
+    list_editable = ('title',)
                 
 class SubClassedExampleNodeAdmin(EasyTreeAdmin):
     pass
