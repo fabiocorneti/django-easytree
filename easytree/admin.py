@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.functional import update_wrapper
 from easytree import utils
 from easytree.forms import extend_modelform
 
@@ -53,4 +54,21 @@ class EasyTreeAdmin(admin.ModelAdmin):
             return list(fieldsets) + [
                     ('Move', {'fields': ('relative_to', 'relative_position'), 'description': 'Only fill these fields if you want to move this node.', 'classes': 'collapse'} )
             ]
-                
+            
+    def move_view(request):
+        return HttpResponse('it works!')                
+        
+	def get_urls(self):
+	    
+	    admin_urls = super(EasyTreeAdmin, self).get_urls()
+	    
+        from django.conf.urls.defaults import patterns, url
+
+        info = self.admin_site.name, self.model._meta.app_label, self.model._meta.module_name
+        
+        return patterns('',
+            url(r'^move/$',
+                self.admin_site.admin_view(self.move_view),
+                name='%sadmin_%s_%s_move' % info),
+        ) + admin_urls
+        
