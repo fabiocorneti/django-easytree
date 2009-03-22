@@ -3,11 +3,16 @@ from django.template import Library
 register = Library()
 
 def results(cl):
+    
+    objects = cl.model.objects.filter(pk__in=[o.pk for o in cl.result_list]).order_by('tree_id', 'lft')
+        
     if cl.formset:
-        for res, form in zip(cl.result_list, cl.formset.forms):
+        pk_forms = dict([(form.instance.pk, form) for form in cl.formset.forms])
+        forms = [pk_forms[obj.pk] for obj in objects]
+        for res, form in zip(objects, forms):
             yield {'object': res, 'items': list(items_for_result(cl, res, form))}
     else:
-        for res in cl.model.objects.filter(pk__in=[o.pk for o in cl.result_list]).order_by('tree_id', 'lft'):
+        for res in objects:
             yield {'object': res, 'items': list(items_for_result(cl, res, None))}
 
 def result_list(cl):
