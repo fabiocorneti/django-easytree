@@ -78,7 +78,7 @@ class EasyTreeAdmin(admin.ModelAdmin):
         
         json_data = {}
         if not error:
-            json_data = {'success': True, 'q': connection.queries}
+            json_data = {'success': True}
         else:
             json_data = {'error': error}
         

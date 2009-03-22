@@ -437,7 +437,6 @@ class EasyTreeManager(models.Manager):
               }
         return sql, []        
         
-    @transaction.commit_on_success
     def add_sibling_to(self, target, pos=None, new_object=None):
         """
         Adds a new node as a sibling to the current node object.
