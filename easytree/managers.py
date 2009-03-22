@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.db import transaction, connection
+from easytree import utils
 from easytree.moveoptions import MoveOptions
 from django.db.models import Q
 import logging
@@ -114,12 +115,11 @@ class EasyTreeManager(models.Manager):
         
     def contribute_to_class(self, model, name):
         super(EasyTreeManager, self).contribute_to_class(model, name)
-        if model == self.get_first_model():
-            pre_save.connect(calculate_lft_rght, sender=model)
-            post_save.connect(move_post_save, sender=model)
+        pre_save.connect(calculate_lft_rght, sender=model)
+        post_save.connect(move_post_save, sender=model)
         
     def get_first_model(self):
-        return self.model
+        return utils.get_toplevel_model(self.model)
         
     def get_descendant_count(self, target):
         """
@@ -244,6 +244,89 @@ class EasyTreeManager(models.Manager):
         except IndexError:
             return None
 
+    def get_tree(self, parent=None):
+        """
+        :returns: A *queryset* of nodes ordered as DFS, including the parent. If
+                  no parent is given, all trees are returned.
+
+        See: :meth:`treebeard.Node.get_tree`
+
+        .. note::
+
+            This metod returns a queryset.
+        """
+        cls = self.get_first_model()
+
+        if parent is None:
+            # return the entire tree
+            return cls.objects.all()
+        if self.is_leaf(parent):
+            return cls.objects.filter(pk=parent.id)
+        return cls.objects.filter(
+            tree_id=parent.tree_id,
+            lft__range=(parent.lft, parent.rgt-1))
+            
+    def get_depth_for(self, target):
+        """
+        :returns: the depth (level) of the node
+
+        See: :meth:`treebeard.Node.get_depth`
+        """
+        return target.depth
+
+    def get_root(self, target):
+        """
+        :returns: the root node for the current node object.
+
+        See: :meth:`treebeard.Node.get_root`
+        """
+        cls = self.get_first_model()
+        try:
+            if target.lft == 1:
+                return target
+            return cls.objects.get(tree_id=target.tree_id, lft=1)
+        except cls.DoesNotExist:
+            return None
+            
+    def is_root(self, target):
+        """
+        :returns: True if the node is a root node (else, returns False)
+
+        Example::
+
+           node.is_root()
+        """
+        return self.get_root(target) == target
+
+    def is_leaf(self, target):
+        """
+        :returns: True if the node is a leaf node (else, returns False)
+
+        See: :meth:`treebeard.Node.is_leaf`
+        """
+        return target.rgt - target.lft == 1
+        
+    def get_children_for(self, target):
+        """
+        :returns: A queryset of all the node's children
+
+        See: :meth:`treebeard.Node.get_children`
+        """
+        return self.get_descendants_for(target).filter(depth=target.depth+1)
+        
+    def get_last_child_for(self, target):
+        """
+        :returns: The rightmost node's child, or None if it has no children.
+
+        Example::
+
+           node.get_last_child()
+        """
+        try:
+            return self.get_children_for(target).reverse()[0]
+        except IndexError:
+            return None
+            
     def move(self, target, dest, pos=None):
         """
         Moves the current node and all it's descendants to a new position
@@ -369,72 +452,7 @@ class EasyTreeManager(models.Manager):
             
         transaction.commit_unless_managed()        
             
-    def _get_close_gap_sql(self, drop_lft, drop_rgt, tree_id):
-        cls = self.get_first_model()
-        
-        sql = 'UPDATE %(table)s ' \
-              ' SET lft = CASE ' \
-              '           WHEN lft > %(drop_lft)d ' \
-              '           THEN lft - %(gapsize)d ' \
-              '           ELSE lft END, ' \
-              '     rgt = CASE ' \
-              '           WHEN rgt > %(drop_lft)d ' \
-              '           THEN rgt - %(gapsize)d ' \
-              '           ELSE rgt END ' \
-              ' WHERE (lft > %(drop_lft)d ' \
-              '     OR rgt > %(drop_lft)d) AND '\
-              '     tree_id=%(tree_id)d' % {
-                  'table': cls._meta.db_table,
-                  'gapsize': drop_rgt - drop_lft + 1,
-                  'drop_lft': drop_lft,
-                  'tree_id': tree_id
-              }
-        return sql, []
-                
-    def _move_right(self, tree_id, rgt, lftmove=False, incdec=2):
-        cls = self.get_first_model()
 
-        if lftmove:
-            lftop = '>='
-        else:
-            lftop = '>'
-        sql = 'UPDATE %(table)s ' \
-              ' SET lft = CASE WHEN lft %(lftop)s %(parent_rgt)d ' \
-              '                THEN lft %(incdec)+d ' \
-              '                ELSE lft END, ' \
-              '     rgt = CASE WHEN rgt >= %(parent_rgt)d ' \
-              '                THEN rgt %(incdec)+d ' \
-              '                ELSE rgt END ' \
-              ' WHERE rgt >= %(parent_rgt)d AND ' \
-              '       tree_id = %(tree_id)s' % {
-                  'table': cls._meta.db_table,
-                  'parent_rgt': rgt,
-                  'tree_id': tree_id,
-                  'lftop': lftop,
-                  'incdec': incdec}
-        return sql, []
-
-    def _move_tree_right(self, tree_id):
-        cls = self.get_first_model()
-        
-        sql = 'UPDATE %(table)s ' \
-              ' SET tree_id = tree_id+1 ' \
-              ' WHERE tree_id >= %(tree_id)d' % {
-                  'table': cls._meta.db_table,
-                  'tree_id': tree_id
-              }
-        return sql, []
-        
-    def _move_tree_left(self, tree_id):
-        cls = self.get_first_model()
-        
-        sql = 'UPDATE %(table)s ' \
-              ' SET tree_id = tree_id-1 ' \
-              ' WHERE tree_id >= %(tree_id)d' % {
-                  'table': cls._meta.db_table,
-                  'tree_id': tree_id
-              }
-        return sql, []        
         
     def add_sibling_to(self, target, pos=None, new_object=None):
         """
@@ -525,6 +543,7 @@ class EasyTreeManager(models.Manager):
         if sql:
             cursor = connection.cursor()
             cursor.execute(sql, params)
+            
         transaction.commit_unless_managed()        
         
     def add_child_to(self, target, new_object=None, pos=None):
@@ -540,8 +559,9 @@ class EasyTreeManager(models.Manager):
             if getattr(target, 'node_order_by', None):
                 pos = 'sorted-sibling'
             else:
-                pos = 'last-sibling'
+                pos = {'last-child': 'last-sibling', 'first-child': 'first-sibling'}[pos]
             last_child = self.get_last_child_for(target)
+            print connection.queries
             last_child._cached_parent_obj = target
             return self.add_sibling_to(last_child, new_object=new_object, pos=pos)
 
@@ -594,89 +614,6 @@ class EasyTreeManager(models.Manager):
         new_object.rgt = 2
         
         transaction.commit_unless_managed()        
-
-    def get_tree(self, parent=None):
-        """
-        :returns: A *queryset* of nodes ordered as DFS, including the parent. If
-                  no parent is given, all trees are returned.
-
-        See: :meth:`treebeard.Node.get_tree`
-
-        .. note::
-
-            This metod returns a queryset.
-        """
-        cls = self.model
-
-        if parent is None:
-            # return the entire tree
-            return cls.objects.all()
-        if self.is_leaf(parent):
-            return cls.objects.filter(pk=parent.id)
-        return cls.objects.filter(
-            tree_id=parent.tree_id,
-            lft__range=(parent.lft, parent.rgt-1))
-            
-    def get_depth_for(self, target):
-        """
-        :returns: the depth (level) of the node
-
-        See: :meth:`treebeard.Node.get_depth`
-        """
-        return target.depth
-
-    def get_root(self, target):
-        """
-        :returns: the root node for the current node object.
-
-        See: :meth:`treebeard.Node.get_root`
-        """
-        cls = self.get_first_model()
-        try:
-            if target.lft == 1:
-                return target
-            return cls.objects.get(tree_id=target.tree_id, lft=1)
-        except cls.DoesNotExist:
-            return None
-            
-    def is_root(self, target):
-        """
-        :returns: True if the node is a root node (else, returns False)
-
-        Example::
-
-           node.is_root()
-        """
-        return self.get_root(target) == target
-
-    def is_leaf(self, target):
-        """
-        :returns: True if the node is a leaf node (else, returns False)
-
-        See: :meth:`treebeard.Node.is_leaf`
-        """
-        return target.rgt - target.lft == 1
-        
-    def get_children_for(self, target):
-        """
-        :returns: A queryset of all the node's children
-
-        See: :meth:`treebeard.Node.get_children`
-        """
-        return self.get_descendants_for(target).filter(depth=target.depth+1)
-        
-    def get_last_child_for(self, target):
-        """
-        :returns: The rightmost node's child, or None if it has no children.
-
-        Example::
-
-           node.get_last_child()
-        """
-        try:
-            return self.get_children_for(target).reverse()[0]
-        except IndexError:
-            return None
         
     def get_sorted_pos_queryset_for(self, target, siblings, newobj):
         """
@@ -702,6 +639,73 @@ class EasyTreeManager(models.Manager):
             newpos, siblings = None, []
         return newpos, siblings
         
+    def _get_close_gap_sql(self, drop_lft, drop_rgt, tree_id):
+        cls = self.get_first_model()
+        
+        sql = 'UPDATE %(table)s ' \
+              ' SET lft = CASE ' \
+              '           WHEN lft > %(drop_lft)d ' \
+              '           THEN lft - %(gapsize)d ' \
+              '           ELSE lft END, ' \
+              '     rgt = CASE ' \
+              '           WHEN rgt > %(drop_lft)d ' \
+              '           THEN rgt - %(gapsize)d ' \
+              '           ELSE rgt END ' \
+              ' WHERE (lft > %(drop_lft)d ' \
+              '     OR rgt > %(drop_lft)d) AND '\
+              '     tree_id=%(tree_id)d' % {
+                  'table': cls._meta.db_table,
+                  'gapsize': drop_rgt - drop_lft + 1,
+                  'drop_lft': drop_lft,
+                  'tree_id': tree_id
+              }
+        return sql, []
+                
+    def _move_right(self, tree_id, rgt, lftmove=False, incdec=2):
+        cls = self.get_first_model()
+
+        if lftmove:
+            lftop = '>='
+        else:
+            lftop = '>'
+        sql = 'UPDATE %(table)s ' \
+              ' SET lft = CASE WHEN lft %(lftop)s %(parent_rgt)d ' \
+              '                THEN lft %(incdec)+d ' \
+              '                ELSE lft END, ' \
+              '     rgt = CASE WHEN rgt >= %(parent_rgt)d ' \
+              '                THEN rgt %(incdec)+d ' \
+              '                ELSE rgt END ' \
+              ' WHERE rgt >= %(parent_rgt)d AND ' \
+              '       tree_id = %(tree_id)s' % {
+                  'table': cls._meta.db_table,
+                  'parent_rgt': rgt,
+                  'tree_id': tree_id,
+                  'lftop': lftop,
+                  'incdec': incdec}
+        return sql, []
+
+    def _move_tree_right(self, tree_id):
+        cls = self.get_first_model()
+        
+        sql = 'UPDATE %(table)s ' \
+              ' SET tree_id = tree_id+1 ' \
+              ' WHERE tree_id >= %(tree_id)d' % {
+                  'table': cls._meta.db_table,
+                  'tree_id': tree_id
+              }
+        return sql, []
+        
+    def _move_tree_left(self, tree_id):
+        cls = self.get_first_model()
+        
+        sql = 'UPDATE %(table)s ' \
+              ' SET tree_id = tree_id-1 ' \
+              ' WHERE tree_id >= %(tree_id)d' % {
+                  'table': cls._meta.db_table,
+                  'tree_id': tree_id
+              }
+        return sql, []        
+                
     def _find_next_node(self, tree_id, lft1, lft2):
         
         cls = self.get_first_model()

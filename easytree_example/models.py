@@ -22,6 +22,8 @@ class ExampleNode(BaseEasyTree):
         return '%s %s' % (u'>>> ' * ((self.depth or 1) -1), self.title)
         
 class SubClassedExampleNode(ExampleNode):
-    
+
+    objects = EasyTreeManager()
+
     language = models.CharField(max_length=2, choices=settings.LANGUAGES)
     
