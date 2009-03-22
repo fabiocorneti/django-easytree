@@ -85,12 +85,13 @@
                 $('#position-menu')
                     .css("top", event.pageY-15)
                     .css("left", event.pageX-60)
-                    .show()
+                    
                     .bind('click', function(e){
-                        $(this).unbind('click')
-                        $(this).hide()
+                        $(this).unbind('click').hide()
                         alert($(e.target).closest('.position').attr('id') + ' ' + ui.draggable.attr('id') + ' ' + dropped_on.attr('id') )
                     })
+                    
+                    .show()
 
             }
             
