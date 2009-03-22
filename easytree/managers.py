@@ -257,7 +257,6 @@ class EasyTreeManager(models.Manager):
         parent = None
         
         cls = self.get_first_model()
-        logging.debug('%s' %  (target.tree_id,))
 
         pos, dest, parent = self.move_opts.fix_move_vars(target, dest, pos)
 
@@ -367,7 +366,9 @@ class EasyTreeManager(models.Manager):
         logging.debug('%s %s' %  (dest_tree, fromobj.tree_id))
         if dest_tree != fromobj.tree_id and self.is_root(target):
             sql, params = self._move_tree_left(fromobj.tree_id)
-            cursor.execute(sql, params)            
+            cursor.execute(sql, params)
+            
+        transaction.commit_unless_managed()        
             
     def _get_close_gap_sql(self, drop_lft, drop_rgt, tree_id):
         cls = self.get_first_model()
@@ -526,6 +527,7 @@ class EasyTreeManager(models.Manager):
         if sql:
             cursor = connection.cursor()
             cursor.execute(sql, params)
+        transaction.commit_unless_managed()        
         
     def add_child_to(self, target, new_object=None, pos=None):
         """
@@ -562,7 +564,8 @@ class EasyTreeManager(models.Manager):
 
         cursor = connection.cursor()
         cursor.execute(sql, params)
-                    
+        transaction.commit_unless_managed()        
+        
     def add_root(self, new_object=None):
         """
         Adds a root node to the tree.
@@ -591,6 +594,8 @@ class EasyTreeManager(models.Manager):
         new_object.tree_id = newtree_id
         new_object.lft = 1
         new_object.rgt = 2
+        
+        transaction.commit_unless_managed()        
 
     def get_tree(self, parent=None):
         """
