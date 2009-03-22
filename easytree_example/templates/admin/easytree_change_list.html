@@ -79,19 +79,31 @@
             }
             
             var drop = function(event, ui) {
-                $('#position-menu').css("top", event.pageY-15).css("left", event.pageX-60).css("z-index", 2).show()
+                
+                var dropped_on = $(this)
+                
+                $('#position-menu')
+                    .css("top", event.pageY-15)
+                    .css("left", event.pageX-60)
+                    .show()
+                    .bind('click', function(e){
+                        $(this).unbind('click')
+                        $(this).hide()
+                        alert($(e.target).closest('.position').attr('id') + ' ' + ui.draggable.attr('id') + ' ' + dropped_on.attr('id') )
+                    })
+
             }
             
             $(this).droppable({hoverClass: 'marked', tolerance: 'pointer', deactivate: deactivate, drop: drop })
             
-            $('#position-menu').bind('mouseleave', function() { $(this).hide() })
+            $('#position-menu').bind('mouseleave', function() { $(this).unbind('click'); $(this).hide() })
 
         })
     })
 </script>
 <style type="text/css">
     .marked { background: #ffcccc; }
-    #position-menu { position: absolute; display: none; }
+    #position-menu { position: absolute; display: none; z-index: 2; }
     #position-menu { background: #e8ffe8; padding: 3px; width: 10em; }
     #position-menu li { list-style-type: none; display: block; margin: 0; padding: 3px; }
     #position-menu li.heading { font-weight: bold; }
