@@ -10,11 +10,9 @@ class EasyTreeAdmin(admin.ModelAdmin):
 
     exclude = ('tree_id', 'depth', 'lft', 'rgt')
 
-    list_display = ('display', 'lft', 'rgt', 'tree_id')
+    list_display = ('display',)
 
     ordering = ('lft',)
-
-    list_filter = ('tree_id',)
 
     change_list_template = 'admin/easytree_change_list.html'
     
