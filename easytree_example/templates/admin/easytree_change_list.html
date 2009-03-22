@@ -52,6 +52,7 @@
         
         var nodes = get_child_nodes(item)
         $(nodes).each(function(){
+            $(this).droppable('disable') // disable drop on dragged nodes
             $(this).clone().removeAttr("id").appendTo(proxytbl)
         })
 
@@ -59,17 +60,43 @@
     }
 
     $(document).ready(function() {
+        
         $('tr.result_item').each(function() {
+            
             function helper() {
                 return make_proxy($(this))
             }
+            
             $(this).draggable({'helper': helper, opacity: 0.6})
-            $(this).droppable({hoverClass: 'marked', tolerance: 'pointer' })
+            
+            var drp = $(this) // store this node for use in deactivate
+
+            var deactivate = function(event, ui) {
+                var nodes = get_child_nodes(drp) // enable drop on dragged nodes
+                $(nodes).each(function(){
+                    $(this).droppable('enable')
+                })
+            }
+            
+            var drop = function(event, ui) {
+                $('#position-menu').css("top", event.pageY-15).css("left", event.pageX-60).css("z-index", 2).show()
+            }
+            
+            $(this).droppable({hoverClass: 'marked', tolerance: 'pointer', deactivate: deactivate, drop: drop })
+            
+            $('#position-menu').bind('mouseleave', function() { $(this).hide() })
+
         })
     })
 </script>
 <style type="text/css">
     .marked { background: #ffcccc; }
+    #position-menu { position: absolute; display: none; }
+    #position-menu { background: #e8ffe8; padding: 3px; width: 10em; }
+    #position-menu li { list-style-type: none; display: block; margin: 0; padding: 3px; }
+    #position-menu li.heading { font-weight: bold; }
+    #position-menu li.position:hover { background: #ffffff; margin: 0; }
+
 </style>
 
 </head>
@@ -84,6 +111,15 @@
 {% block coltype %}flex{% endblock %}
 
 {% block content %}
+<ul id="position-menu">
+    <li class="heading">Relative position:</li>
+    <li class="position" id="first-child">{% trans "First child" %}</li>
+    <li class="position" id="last-child">{% trans "Last child" %}</li>
+    <li class="position" id="first-sibling">{% trans "First sibling" %}</li>
+    <li class="position" id="first-sibling">{% trans "Last sibling" %}</li>
+    <li class="position" id="left">{% trans "Previous sibling" %}</li>
+    <li class="position" id="right">{% trans "Next sibling" %}</li>
+</ul>
 <div id="content-main">
 {% block object-tools %}
 {% if has_add_permission %}
