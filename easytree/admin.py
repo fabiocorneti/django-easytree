@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils import simplejson
 from django.utils.translation import ugettext_lazy as _
-from django.http import HtttpResponse
+from django.http import HttpResponse
 from easytree import utils
 from easytree.forms import extend_modelform
 
