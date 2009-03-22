@@ -1,5 +1,7 @@
 from django.contrib import admin
-from django.utils.functional import update_wrapper
+from django.utils import simplejson
+from django.utils.translation import ugettext_lazy as _
+from django.http import HtttpResponse
 from easytree import utils
 from easytree.forms import extend_modelform
 
@@ -47,16 +49,39 @@ class EasyTreeAdmin(admin.ModelAdmin):
             else:
                 return list(fieldsets) + [
                     ('Position', {'fields': ('relative_to', 'relative_position'), 
-                        'description': 'Select where in the tree you want this node located.'
+                        'description': _('Select where in the tree you want this node located.')
                     }),
                 ]
         else:
             return list(fieldsets) + [
-                    ('Move', {'fields': ('relative_to', 'relative_position'), 'description': 'Only fill these fields if you want to move this node.', 'classes': 'collapse'} )
+                    ('Move', {'fields': ('relative_to', 'relative_position'), 'description': _('Only fill these fields if you want to move this node.'), 'classes': 'collapse'} )
             ]
             
     def move_view(self, request):
-        return HttpResponse('it works!')                
+        
+        error = None
+        
+        try:
+            node_to_move = self.toplevel_model.objects.get(pk=request.GET['node_to_move'])
+            relative_to_node = self.toplevel_model.objects.get(pk=request.GET['node_to_move'])
+            relative_position = self.toplevel_model.objects.get(pk=request.GET['relative_position'])
+        except KeyError:
+            error = _('Invalid GET parameters')
+        except self.toplevel_model.DoesNotExist:
+            error = _('No such model instance')
+            
+        try:
+            self.toplevel_model.objects.move_opts.validate_move(node_to_move, relative_to_node, relative_position=relative_position)
+        except Exception, e:
+            error = e.message
+        
+        json_data = {}
+        if not error:
+            json_data = {'success': True}
+        else:
+            json_data = {'error': error}
+
+        return HttpResponse(simplejson.dumps(json_data), mimetype='text/javascript')                
         
     def get_urls(self):
         
