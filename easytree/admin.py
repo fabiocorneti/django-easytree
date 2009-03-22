@@ -55,13 +55,13 @@ class EasyTreeAdmin(admin.ModelAdmin):
                     ('Move', {'fields': ('relative_to', 'relative_position'), 'description': 'Only fill these fields if you want to move this node.', 'classes': 'collapse'} )
             ]
             
-    def move_view(request):
+    def move_view(self, request):
         return HttpResponse('it works!')                
         
-	def get_urls(self):
-	    
-	    admin_urls = super(EasyTreeAdmin, self).get_urls()
-	    
+    def get_urls(self):
+        
+        admin_urls = super(EasyTreeAdmin, self).get_urls()
+        
         from django.conf.urls.defaults import patterns, url
 
         info = self.admin_site.name, self.model._meta.app_label, self.model._meta.module_name
@@ -72,3 +72,12 @@ class EasyTreeAdmin(admin.ModelAdmin):
                 name='%sadmin_%s_%s_move' % info),
         ) + admin_urls
         
+    def changelist_view(self, request, extra_context=None):
+        
+        from django.core.urlresolvers import reverse
+        extra_context = extra_context or {}
+        
+        info = self.admin_site.name, self.model._meta.app_label, self.model._meta.module_name
+        extra_context['move_url'] = reverse('%sadmin_%s_%s_move' % info)
+        
+        return super(EasyTreeAdmin, self).changelist_view(request, extra_context=extra_context)
