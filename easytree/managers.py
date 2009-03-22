@@ -321,7 +321,7 @@ class EasyTreeManager(models.Manager):
                 sql, params = self._move_tree_right(dest.tree_id)
         else:
             if pos == 'last-sibling':
-                newpos = self.get_parent(dest).rgt
+                newpos = self.get_parent_for(dest).rgt
                 sql, params = move_right(dest.tree_id, newpos, False, gap)
             elif pos == 'first-sibling':
                 newpos = dest.lft

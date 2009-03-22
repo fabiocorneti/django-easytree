@@ -4,6 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.http import HttpResponse
 from easytree import utils
 from easytree.forms import extend_modelform
+from django.db import transaction, connection
 
 class EasyTreeAdmin(admin.ModelAdmin):
 
@@ -62,25 +63,25 @@ class EasyTreeAdmin(admin.ModelAdmin):
         error = None
         
         try:
-            node_to_move = self.toplevel_model.objects.get(pk=request.GET['node_to_move'])
-            relative_to_node = self.toplevel_model.objects.get(pk=request.GET['node_to_move'])
-            relative_position = self.toplevel_model.objects.get(pk=request.GET['relative_position'])
+            node_to_move = self.toplevel_model.objects.get(pk=request.POST['node_to_move'])
+            relative_to_node = self.toplevel_model.objects.get(pk=request.POST['relative_to_node'])
+            relative_position = request.POST['relative_position']
         except KeyError:
             error = _('Invalid GET parameters')
         except self.toplevel_model.DoesNotExist:
             error = _('No such model instance')
             
         try:
-            self.toplevel_model.objects.move_opts.validate_move(node_to_move, relative_to_node, relative_position=relative_position)
+            self.toplevel_model.objects.move(node_to_move, relative_to_node, pos=relative_position)
         except Exception, e:
             error = e.message
         
         json_data = {}
         if not error:
-            json_data = {'success': True}
+            json_data = {'success': True, 'q': connection.queries}
         else:
             json_data = {'error': error}
-
+        
         return HttpResponse(simplejson.dumps(json_data), mimetype='text/javascript')                
         
     def get_urls(self):

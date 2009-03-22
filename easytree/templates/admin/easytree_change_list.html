@@ -8,6 +8,14 @@
 
     var move_url = '{{ move_url }}'
 
+    function get_object_pk(item) {
+        var html_id = item.attr("id")
+        var re = new RegExp('object_id_(\\d+)');
+        var m = re.exec(html_id);
+        console.log([m, html_id])
+        return parseInt(m[1])
+    }
+
     function find_depth(item) {
         var lvl = 0
         for (var i=10;i>=1;i--) {
@@ -90,7 +98,15 @@
                     
                     .bind('click', function(e){
                         $(this).unbind('click').hide()
-                        alert($(e.target).closest('.position').attr('id') + ' ' + ui.draggable.attr('id') + ' ' + dropped_on.attr('id') )
+                        $.post(move_url, {
+                            node_to_move: get_object_pk(ui.draggable),
+                            relative_to_node: get_object_pk(dropped_on),
+                            relative_position: $(e.target).closest('.position').attr("id")
+                        }, function (data, textStatus) {
+                        },
+                    "json")
+                    
+                        // alert($(e.target).closest('.position').attr("id") + ' ' + get_object_pk(ui.draggable) + ' ' + get_object_pk(dropped_on) )
                     })
                     
                     .show()
