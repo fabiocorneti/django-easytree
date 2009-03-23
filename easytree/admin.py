@@ -78,7 +78,7 @@ class EasyTreeAdmin(admin.ModelAdmin):
         if not error:
             json_data = {'success': True}
         else:
-            json_data = {'error': error}
+            json_data = {'success': False, 'error': error}
         
         return HttpResponse(simplejson.dumps(json_data), mimetype='text/javascript')                
         
