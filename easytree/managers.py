@@ -3,6 +3,7 @@ from django.db.models.signals import pre_save, post_save
 from django.db import transaction, connection
 from easytree import utils
 from easytree.moveoptions import MoveOptions
+from easytree.signals import node_moved
 from django.db.models import Q
 import logging
 import operator
@@ -327,7 +328,7 @@ class EasyTreeManager(models.Manager):
         except IndexError:
             return None
             
-    def move(self, target, dest, pos=None):
+    def move(self, target, real_dest, pos=None):
         """
         Moves the current node and all it's descendants to a new position
         relative to another node.
@@ -339,7 +340,9 @@ class EasyTreeManager(models.Manager):
         parent = None
         
         cls = self.get_first_model()
-
+        dest = real_dest
+        real_pos = pos
+        
         pos, dest, parent = self.move_opts.fix_move_vars(target, dest, pos)
 
         if target == dest and (
@@ -450,10 +453,15 @@ class EasyTreeManager(models.Manager):
             sql, params = self._move_tree_left(fromobj.tree_id)
             cursor.execute(sql, params)
             
-        transaction.commit_unless_managed()        
-            
-
+        transaction.commit_unless_managed()
         
+        node_moved.send(
+            sender=target.__class__,
+            node_moved=target,
+            moved_to_node=real_dest,
+            relative_position=real_pos
+        )
+            
     def add_sibling_to(self, target, pos=None, new_object=None):
         """
         Adds a new node as a sibling to the current node object.
