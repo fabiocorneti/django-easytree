@@ -569,7 +569,7 @@ class EasyTreeManager(models.Manager):
             else:
                 pos = {'last-child': 'last-sibling', 'first-child': 'first-sibling'}[pos]
             last_child = self.get_last_child_for(target)
-            print connection.queries
+            
             last_child._cached_parent_obj = target
             return self.add_sibling_to(last_child, new_object=new_object, pos=pos)
 
