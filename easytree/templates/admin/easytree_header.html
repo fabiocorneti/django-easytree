@@ -140,17 +140,19 @@
             
             $(this).droppable({hoverClass: 'marked', tolerance: 'pointer', deactivate: deactivate, drop: drop })
             
-            $('#position-menu').bind('mouseleave', function() { $(this).unbind('click'); $(this).hide() })
+            $(document).bind('click', function() { $('#position-menu').unbind('click'); $('#position-menu').hide() })
 
         })
     })
 </script>
 <style type="text/css">
     .marked { background: #ffcccc; }
-    #position-menu { position: absolute; display: none; z-index: 2; }
-    #position-menu { background: #e8ffe8; padding: 3px; width: 10em; }
-    #position-menu li { list-style-type: none; display: block; margin: 0; padding: 3px; }
+    #position-menu { position: absolute; display: none; z-index: 2; border:  2px; }
+    #position-menu { background: #EDF3FE; padding: 1px; width: 10em; border: 1px solid #8CA7D8; border-left: solid 10px #8CA7D8; }
+    #position-menu li { list-style-type: none; display: block; margin: 0; margin-left: -6px; padding: 3px 1px; padding-left: 7px; }
+    #position-menu li:last-child, #position-menu li:first-child  { border: none; }
+
     #position-menu li.heading { font-weight: bold; }
-    #position-menu li.position:hover { background: #ffffff; margin: 0; }
+    #position-menu li.position:hover { background: #ffffff; border: solid 1px #8CA7D8; }
 
 </style>
