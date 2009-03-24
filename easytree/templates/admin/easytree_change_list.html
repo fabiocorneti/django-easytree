@@ -2,298 +2,92 @@
 {% load adminmedia admin_list i18n easytree_tags %}
 
 {% block extrahead %}
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js"></script>
-<script type="text/javascript">
-
-    var move_url = '{{ move_url }}'
-
-    function get_object_pk(item) {
-        var html_id = item.attr("id")
-        var re = new RegExp('object_id_(\\d+)')
-        var m = re.exec(html_id)
-        return parseInt(m[1])
-    }
-
-    function find_depth(item) {
-        var lvl = 0
-        for (var i=10;i>=1;i--) {
-            lvl = i
-            if (item.hasClass('level_' + i)) break;
-        }
-        return lvl
-    }
-    
-    function alter_depth(item, from_depth, to_depth) {
-        item.removeClass('level_' + from_depth)
-        item.addClass('level_' + to_depth)
-        var depthstr = ''
-        for (var i=1; i < to_depth; i++) depthstr += '&gt;&gt;&gt; '
-        $('.display_indent', item).html(depthstr)
-    }
-
-    function get_child_nodes(item, include_self) {
-        
-        var nodes = []
-        var abovedepth = find_depth($(item))
-        
-        if (include_self) nodes.push(item)
-
-        var curitem = item.next()
-        while(curitem.get(0) && find_depth(curitem)>abovedepth) {
-            nodes.push(curitem)
-            curitem=curitem.next()
-        }
-
-        return nodes
-    }
-
-    function make_proxy(item) {
-        
-        var proxytbl = $('<table cellspacing="0"></table>')
-        proxytbl.width(item.closest('table').width())
-        
-        var firstrow = item.clone()
-        var old_tds = $('td, th', item)
-        var new_tds = $('td, th', firstrow)
-        for (var i=0;i<old_tds.length;i++) {
-            $(new_tds.get(i)).width($(old_tds.get(i)).width())
-        }
-        
-        firstrow.appendTo(proxytbl)
-        
-        var nodes = get_child_nodes(item, false)
-        $(nodes).each(function(){
-            $(this).droppable('disable') // disable drop on dragged nodes
-            $(this).clone().removeAttr("id").appendTo(proxytbl)
-        })
-
-        return proxytbl
-    }
-    
-    function not_in(item, list) {
-        for (var i=0; i<list.length; i++){ 
-            if ( item.attr("id") == list[i].attr("id") ) {
-                return false
-            }
-        }
-        return true
-    }
-    
-    function find_first_child(item) {
-        var depth = find_depth(item) + 1
-        var nextitem = item.next()
-        if (nextitem.get(0)) {
-            if (find_depth(nextitem) == depth) {
-                return nextitem
-            }
-        }
-        return null
-    }    
-    
-    function find_above(item, first_or_last, ignore) {
-        var depth = find_depth(item)
-        var found = null
-        var last = null
-        var nextitem = item.prev()
-        while(nextitem.get(0)) {
-            if (not_in(nextitem, ignore)){
-                if (find_depth(nextitem.prev()) < depth) {
-                    found = nextitem
-                    if (first_or_last == 'first')  break
-                }
-                last = nextitem                
-            }
-            nextitem = nextitem.prev()
-        }
-        return found ? found : last ? last : item
-    }
-    
-    function find_below(item, first_or_last, ignore) {
-        var depth = find_depth(item)
-        var found = null
-        var last = null
-        var nextitem = item.next()
-        while(nextitem.get(0)) {
-            if (not_in(nextitem, ignore)){
-                if (find_depth(nextitem.next()) < depth) {
-                    found = nextitem
-                    if (first_or_last == 'first')  break
-                }
-                last = nextitem                
-            }
-            nextitem = nextitem.next()
-        }
-        return found ? found : last ? last : item
-    }
-        
-    $(document).ready(function() {
-        
-        $('tr.result_item').each(function() {
-            
-            function helper() {
-                return make_proxy($(this))
-            }
-            
-            $(this).draggable({'helper': helper, opacity: 0.6})
-            
-            var drp = $(this) // store this node for use in deactivate
-
-            var deactivate = function(event, ui) {
-                var nodes = get_child_nodes(drp) // enable drop on dragged nodes
-                $(nodes).each(function(){
-                    $(this).droppable('enable')
-                })
-            }
-            
-            var drop = function(event, ui) {
-                
-                var dropped_on = $(this)
-                
-                $('#position-menu')
-                    .css("top", event.pageY-15)
-                    .css("left", event.pageX-60)
-                    
-                    .bind('click', function(e){
-                        
-                        $(this).unbind('click').hide()
-                        var relative_position = $(e.target).closest('.position').attr("id")
-
-                        var postdata = {
-                            node_to_move: get_object_pk(ui.draggable),
-                            relative_to_node: get_object_pk(dropped_on),
-                            relative_position: relative_position
-                        }
-                        
-                        $.post(move_url, postdata, function (data, textStatus) {
-                            
-                            if (data.success) {
-
-                                var item = ui.draggable
-                                var depthdiff = find_depth(dropped_on) - find_depth(item) + (/sibling/.test(relative_position) ? 0 : 1)
-                                var childnodes = get_child_nodes(item, true)
-                                
-                                var insert_at = null
-                                var insert_pos = 'after'
-                                if ( /child/.test(relative_position) ) {
-                                    insert_at = dropped_on
-                                    console.log(relative_position)
-                                    if ( /last/.test(relative_position) && find_first_child(dropped_on)) { // look for last sibling if first child
-                                        insert_at = find_below(find_first_child(dropped_on), 'first', childnodes) // last sibling if any
-                                        console.log(relative_position)
-                                    }
-                                }
-                                if ( /sibling|left|right/.test(relative_position) ) {
-                                    
-                                    if ( /last/.test(relative_position) ) {
-                                        insert_at = find_below(dropped_on, 'last', childnodes) // last sibling if any
-                                        console.log(relative_position)
-                                    }
-                                    if ( /first/.test(relative_position) ) {
-                                        insert_pos = 'before'
-                                        insert_at = find_above(dropped_on, 'last', childnodes) // first sibling if any
-                                        console.log(relative_position)
-                                    }
-                                    if ( /left/.test(relative_position) ) {
-                                        insert_at = find_above(dropped_on, 'first', childnodes) // previous sibling if any
-                                        console.log(relative_position)
-                                    }
-                                    if ( /right/.test(relative_position) ) {
-                                        insert_at = find_below(dropped_on, 'first', childnodes) // next sibling if any
-                                        console.log(relative_position)
-                                    }
-                                }
-                                
-                                childnodes = insert_pos == 'before' ? childnodes : childnodes.reverse()
-                                $(childnodes).each(function() {
-                                    
-                                   var newdepth = find_depth($(this)) + depthdiff 
-                                   alter_depth($(this), find_depth($(this)), newdepth)
-                                   insert_at[insert_pos]($(this))
-                                   
-                                })
-                            }
-                        },
-                    "json")
-                    
-                        // alert($(e.target).closest('.position').attr("id") + ' ' + get_object_pk(ui.draggable) + ' ' + get_object_pk(dropped_on) )
-                    })
-                    
-                    .show()
-
-            }
-            
-            $(this).droppable({hoverClass: 'marked', tolerance: 'pointer', deactivate: deactivate, drop: drop })
-            
-            $('#position-menu').bind('mouseleave', function() { $(this).unbind('click'); $(this).hide() })
-
-        })
-    })
-</script>
-<style type="text/css">
-    .marked { background: #ffcccc; }
-    #position-menu { position: absolute; display: none; z-index: 2; }
-    #position-menu { background: #e8ffe8; padding: 3px; width: 10em; }
-    #position-menu li { list-style-type: none; display: block; margin: 0; padding: 3px; }
-    #position-menu li.heading { font-weight: bold; }
-    #position-menu li.position:hover { background: #ffffff; margin: 0; }
-
-</style>
-
-</head>
+    {% include "admin/easytree_header.html" %}
 {% endblock %}
 
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/changelists.css" />{% endblock %}
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/changelists.css" />
+  {% if cl.formset %}
+    <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/forms.css" />
+    <script type="text/javascript" src="../../jsi18n/"></script>
+  {% endif %}
+  {{ media }}
+{% endblock %}
 
 {% block bodyclass %}change-list{% endblock %}
 
-{% if not is_popup %}{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../">{% trans "Home" %}</a> &rsaquo; <a href="../">{{ app_label|capfirst }}</a> &rsaquo; {{ cl.opts.verbose_name_plural|capfirst }}</div>{% endblock %}{% endif %}
+{% if not is_popup %}
+  {% block breadcrumbs %}
+    <div class="breadcrumbs">
+      <a href="../../">
+        {% trans "Home" %}
+      </a>
+       &rsaquo; 
+       <a href="../">
+         {{ app_label|capfirst }}
+      </a>
+      &rsaquo; 
+      {{ cl.opts.verbose_name_plural|capfirst }}
+    </div>
+  {% endblock %}
+{% endif %}
 
 {% block coltype %}flex{% endblock %}
 
 {% block content %}
-<ul id="position-menu">
-    <li class="heading">Relative position:</li>
-    <li class="position" id="first-child">{% trans "First child" %}</li>
-    <li class="position" id="last-child">{% trans "Last child" %}</li>
-    <li class="position" id="first-sibling">{% trans "First sibling" %}</li>
-    <li class="position" id="last-sibling">{% trans "Last sibling" %}</li>
-    <li class="position" id="left">{% trans "Previous sibling" %}</li>
-    <li class="position" id="right">{% trans "Next sibling" %}</li>
-</ul>
-<div id="content-main">
-{% block object-tools %}
-{% if has_add_permission %}
-<ul class="object-tools"><li><a href="add/{% if is_popup %}?_popup=1{% endif %}" class="addlink">{% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}</a></li></ul>
-{% endif %}
-{% endblock %}
-{% if cl.formset.errors %}
-    <p class="errornote">
-    {% blocktrans count cl.formset.errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
-    </p>
-    <ul class="errorlist">{% for error in cl.formset.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
-{% endif %}
-<div class="module{% if cl.has_filters %} filtered{% endif %}" id="changelist">
-{% block search %}{% search_form cl %}{% endblock %}
-{% block date_hierarchy %}{% date_hierarchy cl %}{% endblock %}
+    <ul id="position-menu">
+        <li class="heading">Relative position:</li>
+        <li class="position" id="first-child">{% trans "First child" %}</li>
+        <li class="position" id="last-child">{% trans "Last child" %}</li>
+        <li class="position" id="first-sibling">{% trans "First sibling" %}</li>
+        <li class="position" id="last-sibling">{% trans "Last sibling" %}</li>
+        <li class="position" id="left">{% trans "Previous sibling" %}</li>
+        <li class="position" id="right">{% trans "Next sibling" %}</li>
+    </ul>
+  <div id="content-main">
+    {% block object-tools %}
+      {% if has_add_permission %}
+        <ul class="object-tools">
+          <li>
+            <a href="add/{% if is_popup %}?_popup=1{% endif %}" class="addlink">
+              {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
+            </a>
+          </li>
+        </ul>
+      {% endif %}
+    {% endblock %}
+    {% if cl.formset.errors %}
+        <p class="errornote">
+        {% blocktrans count cl.formset.errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
+        </p>
+        <ul class="errorlist">{% for error in cl.formset.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    {% endif %}
+    <div class="module{% if cl.has_filters %} filtered{% endif %}" id="changelist">
+      {% block search %}{% search_form cl %}{% endblock %}
+      {% block date_hierarchy %}{% date_hierarchy cl %}{% endblock %}
 
-{% block filters %}
-{% if cl.has_filters %}
-<div id="changelist-filter">
-<h2>{% trans 'Filter' %}</h2>
-{% for spec in cl.filter_specs %}
-   {% admin_list_filter cl spec %}
-{% endfor %}
-</div>
-{% endif %}
-{% endblock %}
-{% if cl.formset %}
-<form action="" method="post"{% if cl.formset.is_multipart %} enctype="multipart/form-data"{% endif %}>
-    {{ cl.formset.management_form }}
-{% endif %}
-{% block result_list %}{% result_list cl %}{% endblock %}
-{% block pagination %}{% pagination cl %}{% endblock %}
-{% if cl.formset %}</form>{% endif %}
-</div>
-</div>
+      {% block filters %}
+        {% if cl.has_filters %}
+          <div id="changelist-filter">
+            <h2>{% trans 'Filter' %}</h2>
+            {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
+          </div>
+        {% endif %}
+      {% endblock %}
+      
+      <form action="" method="post"{% if cl.formset.is_multipart %} enctype="multipart/form-data"{% endif %}>
+      {% if cl.formset %}
+        {{ cl.formset.management_form }}
+      {% endif %}
+
+      {% block result_list %}
+          {% if actions_on_top and cl.full_result_count %}{% admin_actions %}{% endif %}
+          {% result_list cl %}
+          {% if actions_on_bottom and cl.full_result_count %}{% admin_actions %}{% endif %}
+      {% endblock %}
+      {% block pagination %}{% pagination cl %}{% endblock %}
+      </form>
+    </div>
+  </div>
 {% endblock %}
