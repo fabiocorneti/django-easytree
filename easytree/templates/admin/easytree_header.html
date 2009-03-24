@@ -66,63 +66,7 @@
 
         return proxytbl
     }
-    
-    function not_in(item, list) {
-        for (var i=0; i<list.length; i++){ 
-            if ( item.attr("id") == list[i].attr("id") ) {
-                return false
-            }
-        }
-        return true
-    }
-    
-    function find_first_child(item) {
-        var depth = find_depth(item) + 1
-        var nextitem = item.next()
-        if (nextitem.get(0)) {
-            if (find_depth(nextitem) == depth) {
-                return nextitem
-            }
-        }
-        return null
-    }    
-    
-    function find_above(item, first_or_last, ignore) {
-        var depth = find_depth(item)
-        var found = null
-        var last = null
-        var nextitem = item.prev()
-        while(nextitem.get(0)) {
-            if (not_in(nextitem, ignore)){
-                if (find_depth(nextitem.prev()) < depth) {
-                    found = nextitem
-                    if (first_or_last == 'first')  break
-                }
-                last = nextitem                
-            }
-            nextitem = nextitem.prev()
-        }
-        return found ? found : last ? last : item
-    }
-    
-    function find_below(item, first_or_last, ignore) {
-        var depth = find_depth(item)
-        var found = null
-        var last = null
-        var nextitem = item.next()
-        while(nextitem.get(0)) {
-            if (not_in(nextitem, ignore)){
-                if (find_depth(nextitem.next()) < depth) {
-                    found = nextitem
-                    if (first_or_last == 'first')  break
-                }
-                last = nextitem                
-            }
-            nextitem = nextitem.next()
-        }
-        return found ? found : last ? last : item
-    }
-        
+            
     $(document).ready(function() {
         
         $('tr.result_item').each(function() {
@@ -165,49 +109,24 @@
                             
                             if (data.success) {
 
-                                var item = ui.draggable
-                                var depthdiff = find_depth(dropped_on) - find_depth(item) + (/sibling/.test(relative_position) ? 0 : 1)
-                                var childnodes = get_child_nodes(item, true)
-                                
-                                var insert_at = null
-                                var insert_pos = 'after'
                                 if ( /child/.test(relative_position) ) {
-                                    insert_at = dropped_on
-                                    console.log(relative_position)
-                                    if ( /last/.test(relative_position) && find_first_child(dropped_on)) { // look for last sibling if first child
-                                        insert_at = find_below(find_first_child(dropped_on), 'first', childnodes) // last sibling if any
-                                        console.log(relative_position)
+                                 
+                                    if ( /last/.test(relative_position) && find_first_child(dropped_on)) { 
                                     }
                                 }
                                 if ( /sibling|left|right/.test(relative_position) ) {
-                                    
-                                    if ( /last/.test(relative_position) ) {
-                                        insert_at = find_below(dropped_on, 'last', childnodes) // last sibling if any
-                                        console.log(relative_position)
+                                    if ( /last/.test(relative_position) ) {                                 
                                     }
                                     if ( /first/.test(relative_position) ) {
-                                        insert_pos = 'before'
-                                        insert_at = find_above(dropped_on, 'last', childnodes) // first sibling if any
-                                        console.log(relative_position)
                                     }
                                     if ( /left/.test(relative_position) ) {
-                                        insert_at = find_above(dropped_on, 'first', childnodes) // previous sibling if any
-                                        console.log(relative_position)
                                     }
-                                    if ( /right/.test(relative_position) ) {
-                                        insert_at = find_below(dropped_on, 'first', childnodes) // next sibling if any
-                                        console.log(relative_position)
+                                    if ( /right/.test(relative_position) ) { 
                                     }
                                 }
-                                
-                                childnodes = insert_pos == 'before' ? childnodes : childnodes.reverse()
-                                $(childnodes).each(function() {
-                                    
-                                   var newdepth = find_depth($(this)) + depthdiff 
-                                   alter_depth($(this), find_depth($(this)), newdepth)
-                                   insert_at[insert_pos]($(this))
-                                   
-                                })
+                            
+                            location.reload()
+                               
                             }
                         },
                     "json")
