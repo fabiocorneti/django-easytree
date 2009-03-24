@@ -21,3 +21,64 @@ def result_list(cl):
             'results': list(results(cl))}
             
 result_list = register.inclusion_tag("admin/easytree_change_list_results.html")(result_list)
+
+def previous_current_next(items):
+    """
+    From http://www.wordaligned.org/articles/zippy-triples-served-with-python
+
+    Creates an iterator which returns (previous, current, next) triples,
+    with ``None`` filling in when there is no previous or next
+    available.
+    """
+    extend = itertools.chain([None], items, [None])
+    previous, current, next = itertools.tee(extend, 3)
+    try:
+        current.next()
+        next.next()
+        next.next()
+    except StopIteration:
+        pass
+    return itertools.izip(previous, current, next)
+
+def tree_item_iterator(items):
+    """
+    Given a list of tree items, iterates over the list, generating
+    two-tuples of the current tree item and a ``dict`` containing
+    information about the tree structure around the item, with the
+    following keys:
+
+       ``'new_level'`
+          ``True`` if the current item is the start of a new level in
+          the tree, ``False`` otherwise.
+
+       ``'closed_levels'``
+          A list of levels which end after the current item. This will
+          be an empty list if the next item is at the same level as the
+          current item.
+
+    """
+    structure = {}
+    for previous, current, next in previous_current_next(items):
+        
+        current_level = getattr(current, 'depth')
+        if previous:
+            structure['new_level'] = (getattr(previous,
+                                              'depth') < current_level)
+        else:
+            structure['new_level'] = True
+
+        if next:
+            structure['closed_levels'] = range(current_level,
+                                               getattr(next,
+                                                       'depth'), -1)
+        else:
+            # All remaining levels need to be closed
+            structure['closed_levels'] = range(current_level, -1, -1)
+
+        # Return a deep copy of the structure dict so this function can
+        # be used in situations where the iterator is consumed
+        # immediately.
+        yield current, copy.deepcopy(structure)
+
+register.filter(tree_item_iterator)
+
