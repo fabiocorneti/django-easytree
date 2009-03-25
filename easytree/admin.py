@@ -10,7 +10,7 @@ class EasyTreeAdmin(admin.ModelAdmin):
 
     exclude = ('tree_id', 'depth', 'lft', 'rgt')
 
-    list_display = ('display',)
+    list_display = ('display_as_node',)
 
     ordering = ('lft',)
 
@@ -20,6 +20,13 @@ class EasyTreeAdmin(admin.ModelAdmin):
     
     toplevel_model_cache = None
     
+    def display_as_node(self, obj):
+        
+        return  u'%s %s' % (
+            u'>>>' * ((obj.depth or 1) -1),
+            unicode(obj)
+        )
+        
     def get_toplevel_model(self):
         if not self.toplevel_model_cache:
             self.toplevel_model_cache = utils.get_toplevel_model(self.model)
