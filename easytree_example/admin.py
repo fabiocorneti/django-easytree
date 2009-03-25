@@ -1,16 +1,15 @@
-from easytree_example.models import ExampleNode, SubClassedExampleNode
-from easytree.admin import EasyTreeAdmin
+from problem_example.models import Example, SubClassedExample
 from django.contrib import admin
 
-class ExampleNodeAdmin(EasyTreeAdmin):
-    list_display = ('display', 'lft', 'rgt', 'tree_id', 'title')
+class ExampleAdmin(admin.ModelAdmin):
+    list_display = ('__unicode__', 'title')
     list_editable = ('title',)
-    list_filter = ('tree_id',)
-    
-class SubClassedExampleNodeAdmin(EasyTreeAdmin):
-    list_display = ('display', 'lft', 'rgt', 'tree_id', 'title')
+    ordering = ('title',)
+ 
+class SubClassedExampleAdmin(admin.ModelAdmin):
+    list_display = ('__unicode__', 'title')
     list_editable = ('title',)
-    list_filter = ('tree_id',)
-    
-admin.site.register(ExampleNode, ExampleNodeAdmin)
-admin.site.register(SubClassedExampleNode, SubClassedExampleNodeAdmin)
+    ordering = ('title',)
+
+admin.site.register(Example, ExampleAdmin)
+admin.site.register(SubClassedExample, SubClassedExampleAdmin)

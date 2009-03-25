@@ -1,5 +1,7 @@
 from django.contrib.admin.templatetags.admin_list import result_headers, items_for_result
 from django.template import Library
+import itertools, copy
+
 register = Library()
 
 def results(cl):
