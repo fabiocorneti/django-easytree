@@ -457,8 +457,8 @@ class EasyTreeManager(models.Manager):
         
         node_moved.send(
             sender=target.__class__,
-            node_moved=target,
-            moved_to_node=real_dest,
+            node_moved=cls.objects.get(pk=target.id), # make sure we get the updated nodes
+            moved_to_node=cls.objects.get(pk=real_dest.pk),
             relative_position=real_pos
         )
             
@@ -713,20 +713,3 @@ class EasyTreeManager(models.Manager):
                   'tree_id': tree_id
               }
         return sql, []        
-                
-    def _find_next_node(self, tree_id, lft1, lft2):
-        
-        cls = self.get_first_model()
-        
-        last_lft = cls.objects.filter(tree_id=tree_id, lft__gte=lft1,
-                 lft__lt=lft2).order_by('lft').reverse()[0].lft
-        if lft2 - last_lft <= 2:
-            interval = 10
-        else:
-
-            interval = (lft2 - last_lft) / 10
-
-            if interval == 0:
-                interval = 1
-
-        return last_lft + 10, last_lft + 10 * 2
