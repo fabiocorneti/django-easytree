@@ -60,13 +60,16 @@ def tree_item_iterator(items):
 
     """
     structure = {}
+    first_level = False
     for previous, current, next in previous_current_next(items):
         
         current_level = getattr(current, 'depth')
+
         if previous:
             structure['new_level'] = (getattr(previous,
                                               'depth') < current_level)
         else:
+            first_level = current_level
             structure['new_level'] = True
 
         if next:
@@ -75,7 +78,7 @@ def tree_item_iterator(items):
                                                        'depth'), -1)
         else:
             # All remaining levels need to be closed
-            structure['closed_levels'] = range(current_level, -1, -1)
+            structure['closed_levels'] = range(current_level - first_level, -1, -1)
 
         # Return a deep copy of the structure dict so this function can
         # be used in situations where the iterator is consumed
