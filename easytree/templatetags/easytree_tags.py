@@ -1,5 +1,6 @@
 from django.contrib.admin.templatetags.admin_list import result_headers, items_for_result
 from django.template import Library
+from django.conf import settings
 import itertools, copy
 
 register = Library()
@@ -86,4 +87,15 @@ def tree_item_iterator(items):
         yield current, copy.deepcopy(structure)
 
 register.filter(tree_item_iterator)
+
+def jquery_ui_media():
+    return '''
+<script type="text/javascript" src="%s"></script>
+<script type="text/javascript" src="%s"></script>
+<link rel="stylesheet" type="text/css" href="%s" />''' % (
+        getattr(settings, 'EASTYTREE_JQUERY_JS', 'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js'),
+        getattr(settings, 'EASTYTREE_JQUERY_UI_JS', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js'),
+        getattr(settings, 'EASTYTREE_JQUERY_UI_CSS', 'not_set')
+    )
+register.simple_tag(jquery_ui_media)
 

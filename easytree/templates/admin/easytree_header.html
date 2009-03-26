@@ -1,5 +1,6 @@
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js"></script>
+{% load easytree_tags %}
+{% jquery_ui_media %}
+
 <script type="text/javascript">
 
     var move_url = '{{ move_url }}'
@@ -128,6 +129,14 @@
                             location.reload()
                                
                             }
+                            else {
+                                $('<div id="move-error"><p>' + data.error + '</p></div>').dialog(
+                                    { buttons: 
+                                        { "Ok": function() {
+                                            $(this).dialog("close");
+                                        }
+                                }})
+                            }
                         },
                     "json")
                     
@@ -138,7 +147,7 @@
 
             }
             
-            $(this).droppable({hoverClass: 'marked', tolerance: 'pointer', deactivate: deactivate, drop: drop })
+            $(this).droppable({hoverClass: 'marked', tolerance: 'pointer', deactivate: deactivate, drop: drop, accept: '.result_item' })
             
             $(document).bind('click', function() { $('#position-menu').unbind('click'); $('#position-menu').hide() })
 
