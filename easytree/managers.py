@@ -449,7 +449,7 @@ class EasyTreeManager(models.Manager):
         cursor.execute(sql, params)
         
         logging.debug('%s %s' %  (dest_tree, fromobj.tree_id))
-        if dest_tree != fromobj.tree_id and self.is_root(target):
+        if self.is_root(target) and self.is_root(dest): # close gap when moving root nodes
             sql, params = self._move_tree_left(fromobj.tree_id)
             cursor.execute(sql, params)
             
