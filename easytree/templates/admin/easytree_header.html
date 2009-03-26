@@ -59,10 +59,13 @@
         
         firstrow.appendTo(proxytbl)
         
+        item.droppable('disable').addClass('drop-disabled')
+        
         var nodes = get_child_nodes(item, false)
         $(nodes).each(function(){
-            $(this).droppable('disable') // disable drop on dragged nodes
+             
             $(this).clone().removeAttr("id").appendTo(proxytbl)
+            $(this).droppable('disable').addClass('drop-disabled') // disable drop on dragged nodes
         })
 
         return proxytbl
@@ -76,19 +79,18 @@
                 return make_proxy($(this))
             }
             
-            $(this).draggable({'helper': helper, opacity: 0.6})
-            
             var drp = $(this) // store this node for use in deactivate
-
+            
             var deactivate = function(event, ui) {
-                var nodes = get_child_nodes(drp) // enable drop on dragged nodes
-                $(nodes).each(function(){
-                    $(this).droppable('enable')
-                })
-            }
+                var nodes = get_child_nodes(drp, true) // enable drop on dragged nodes
+                $('.drop-disabled').droppable('enable').removeClass('drop-disabled')
+                
+            }   
+                     
+            $(this).draggable({'helper': helper, opacity: 0.6, stop: deactivate})
             
             var drop = function(event, ui) {
-                
+                deactivate(event, ui)
                 var dropped_on = $(this)
                 
                 $('#position-menu')
@@ -147,7 +149,7 @@
 
             }
             
-            $(this).droppable({hoverClass: 'marked', tolerance: 'pointer', deactivate: deactivate, drop: drop, accept: '.result_item' })
+            $(this).droppable({hoverClass: 'marked', tolerance: 'pointer', drop: drop, accept: '.result_item' })
             
             $(document).bind('click', function() { $('#position-menu').unbind('click'); $('#position-menu').hide() })
 
