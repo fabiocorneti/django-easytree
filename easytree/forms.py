@@ -62,7 +62,7 @@ class BaseEasyTreeForm(forms.ModelForm):
             if not relative_to:
                 
                 try:
-                    model.objects.move_opts.validate_root(None, relative_to, pos=relative_position)
+                    model.objects.validate_root(None, relative_to, pos=relative_position, cleaned_data=cleaned_data)
                 except Exception, e:
                     raise forms.ValidationError, e.message
                     
@@ -71,21 +71,21 @@ class BaseEasyTreeForm(forms.ModelForm):
                 if relative_position in ('last-child', 'first-child', 'sorted-child'):
                     
                     try:
-                        model.objects.move_opts.validate_child(None, relative_to, pos=relative_position)
+                        model.objects.validate_child(None, relative_to, pos=relative_position, cleaned_data=cleaned_data)
                     except Exception, e:
                         raise forms.ValidationError, e.message
                         
                 else:
                     
                     try:
-                        model.objects.move_opts.validate_sibling(None, relative_to, pos=relative_position)
+                        model.objects.validate_sibling(None, relative_to, pos=relative_position, cleaned_data=cleaned_data)
                     except Exception, e:
                         raise forms.ValidationError, e.message
                         
         else:
             if relative_to:
                 try:
-                    model.objects.move_opts.validate_move(self.instance, relative_to, pos=relative_position)
+                    model.objects.validate_move(self.instance, relative_to, pos=relative_position, cleaned_data=cleaned_data)
                 except Exception, e:
                     raise forms.ValidationError, e.message        
         

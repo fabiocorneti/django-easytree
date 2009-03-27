@@ -3,6 +3,7 @@ from django.db.models.signals import pre_save, post_save
 from django.db import transaction, connection
 from easytree import utils
 from easytree.moveoptions import MoveOptions
+from easytree.exceptions import InvalidMoveToDescendant, MissingNodeOrderBy, InvalidPosition
 from easytree.signals import node_moved
 from django.db.models import Q
 import logging
@@ -111,8 +112,6 @@ class EasyTreeManager(models.Manager):
         super(EasyTreeManager, self).__init__(*args, **kwargs)
 
         self.validators = kwargs.get('validators', [])
-        move_opts_class = kwargs.get('move_opts_class', MoveOptions)
-        self.move_opts = move_opts_class(self)
         
     def contribute_to_class(self, model, name):
         super(EasyTreeManager, self).contribute_to_class(model, name)
@@ -343,7 +342,7 @@ class EasyTreeManager(models.Manager):
         dest = real_dest
         real_pos = pos
         
-        pos, dest, parent = self.move_opts.fix_move_vars(target, dest, pos)
+        pos, dest, parent = self.fix_move_vars(target, dest, pos)
 
         if target == dest and (
               (pos == 'left') or \
@@ -470,7 +469,7 @@ class EasyTreeManager(models.Manager):
         """
         cls = self.get_first_model()
         
-        pos = self.move_opts.fix_add_sibling_vars(new_object, target, pos)
+        pos = self.fix_add_sibling_vars(new_object, target, pos)
 
         # creating a new object
         new_object.depth = target.depth
@@ -712,4 +711,117 @@ class EasyTreeManager(models.Manager):
                   'table': cls._meta.db_table,
                   'tree_id': tree_id
               }
-        return sql, []        
+        return sql, []
+    
+    """ Validation """
+    
+    def validate_root(self, target, related, pos=None, **kwargs):
+        
+        node_order_by = getattr(self.model, 'node_order_by', None)
+        
+        self.process_validators(target, related, related, pos=None, func='add_root', **kwargs)
+            
+    def validate_sibling(self, target, related, pos=None, **kwargs):
+        
+        node_order_by = getattr(self.model, 'node_order_by', None)
+        
+        if pos not in ('first-sibling', 'left', 'right', 'last-sibling', 'sorted-sibling'):
+            raise InvalidPosition('Invalid relative position: %s' % (pos,))
+        if node_order_by and pos != 'sorted-sibling':
+            raise InvalidPosition('Must use %s in add_sibling when'
+                                  ' node_order_by is enabled' % ('sorted-sibling',))
+        if pos == 'sorted-sibling' and not node_order_by:
+            raise MissingNodeOrderBy('Missing node_order_by attribute.')
+        
+        self.process_validators(target, related, related, pos=None, func='add_sibling', **kwargs)
+        
+    def validate_child(self, target, related, pos=None, **kwargs):
+        
+        node_order_by = getattr(self.model, 'node_order_by', None)
+        
+        if pos not in ('first-child', 'last-child', 'sorted-child'):
+            raise InvalidPosition('Invalid relative position: %s' % (pos,))
+        if node_order_by and pos != 'sorted-child':
+            raise InvalidPosition('Must use %s in add_child when'
+                                  ' node_order_by is enabled' % ('sorted-child',))
+        if pos == 'sorted-child' and not node_order_by:
+            raise MissingNodeOrderBy('Missing node_order_by attribute.')
+            
+        self.process_validators(target, related, related, pos=None, func='add_child', **kwargs)
+        
+    def validate_move(self, target, related, pos, **kwargs):
+        
+        node_order_by = getattr(self.model, 'node_order_by', None)
+
+        if pos not in ('first-sibling', 'left', 'right', 'last-sibling', 'sorted-sibling',
+                       'first-child', 'last-child', 'sorted-child'):
+            raise InvalidPosition('Invalid relative position: %s' % (pos,))
+        if node_order_by and pos not in ('sorted-child', 'sorted-sibling'):
+            raise InvalidPosition('Must use %s or %s in move when'
+                                  ' node_order_by is enabled' % ('sorted-sibling',
+                                  'sorted-child'))
+        if pos in ('sorted-child', 'sorted-sibling') and not node_order_by:
+            raise MissingNodeOrderBy('Missing node_order_by attribute.')
+            
+        parent = None
+        dest = related
+        
+        if pos in ('first-child', 'last-child', 'sorted-child'):
+            # moving to a child
+            if self.is_leaf(dest):
+                parent = dest
+                pos = 'last-child'
+            else:
+                dest = self.get_last_child_for(dest)
+                pos = {'first-child': 'first-sibling',
+                       'last-child': 'last-sibling',
+                       'sorted-child': 'sorted-sibling'}[pos]
+                       
+            if dest == target:
+                raise InvalidMoveToDescendant("Can't move node to a descendant.")
+                           
+        if self.is_descendant_of(dest, target):
+            raise InvalidMoveToDescendant("Can't move node to a descendant.")
+
+        self.process_validators(target, dest, related, pos=None, func='move', **kwargs)
+        
+        return (pos, dest, parent)                
+        
+    def process_validators(self, target, related, realrelated, pos, func=None, **kwargs):
+        for v in getattr(self, 'validators', []):
+            validator = v()
+            validator_func = getattr(validator, 'validate_%s' % func)
+            if validator_func:
+                validator_func(self, target, related, realrelated, pos, **kwargs) 
+    
+    """ Fix opts """
+    
+    def fix_add_sibling_vars(self, target, related, pos):
+        """
+        prepare the pos variable for the add_sibling method
+        """
+        node_order_by = getattr(self.model, 'node_order_by', None)
+        
+        if pos is None:
+            if node_order_by:
+                pos = 'sorted-sibling'
+            else:
+                pos = 'last-sibling'
+                
+        self.validate_sibling(target, related, pos)
+
+        return pos   
+             
+    def fix_move_vars(self, target, related, pos):
+        """
+        prepare the pos var for the move method
+        """
+        node_order_by = getattr(self.model, 'node_order_by', None)
+        
+        if pos is None:
+            if node_order_by:
+                pos = 'sorted-sibling'
+            else:
+                pos = 'last-sibling'
+                
+        return self.validate_move(target, related, pos)
