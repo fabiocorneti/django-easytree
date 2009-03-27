@@ -149,7 +149,7 @@ class EasyTreeManager(models.Manager):
         :returns: A queryset of all the node's descendants as DFS, doesn't
             include the node itself
 
-        See: :meth:`treebeard.Node.get_descendants`
+        See: :meth:`easytree.managers.EasyTreeManager.get_descendants_for`
         """
         cls = self.get_first_model()
 
@@ -162,7 +162,7 @@ class EasyTreeManager(models.Manager):
         :returns: ``True`` if the node if a descendant of another node given
             as an argument, else, returns ``False``
 
-        See: :meth:`treebeard.Node.is_descendant_of`
+        See: :meth:`easytree.managers.EasyTreeManager.is_descendant_of`
         """
         return target.tree_id == node.tree_id and \
                target.lft > node.lft and \
@@ -173,7 +173,7 @@ class EasyTreeManager(models.Manager):
         :returns: the parent node of the current node object.
             Caches the result in the object itself to help in loops.
 
-        See: :meth:`treebeard.Node.get_parent`
+        See: :meth:`easytree.managers.EasyTreeManager.get_parent_for`
         """
         if self.is_root(target):
             return None
@@ -196,7 +196,7 @@ class EasyTreeManager(models.Manager):
         :returns: A queryset of all the node's siblings, including the node
             itself.
 
-        See: :meth:`treebeard.Node.get_siblings`
+        See: :meth:`easytree.managers.EasyTreeManager.get_siblings_for`
         """
         if target.lft == 1:
             return self.get_root_nodes()
@@ -209,7 +209,7 @@ class EasyTreeManager(models.Manager):
 
         Example::
          
-           node.get_first_sibling()
+           MyTreeModel.objects.get_first_sibling_for(instance)
         """
         return self.get_siblings_for(target)[0]
     
@@ -220,7 +220,7 @@ class EasyTreeManager(models.Manager):
 
         Example::
 
-           MyTreeModel.easytree.get_root_nodes()
+           MyTreeModel.objects.get_root_nodes()
         """
         return cls.objects.filter(lft=1)        
         
@@ -232,7 +232,7 @@ class EasyTreeManager(models.Manager):
 
         Example::
 
-           MyTreeModel.easytree.get_last_root_node()
+           MyTreeModel.objects.get_last_root_node()
 
         """
         try:
@@ -245,7 +245,7 @@ class EasyTreeManager(models.Manager):
         :returns: A *queryset* of nodes ordered as DFS, including the parent. If
                   no parent is given, all trees are returned.
 
-        See: :meth:`treebeard.Node.get_tree`
+        See: :meth:`easytree.managers.EasyTreeManager.get_tree`
 
         .. note::
 
@@ -266,7 +266,7 @@ class EasyTreeManager(models.Manager):
         """
         :returns: the depth (level) of the node
 
-        See: :meth:`treebeard.Node.get_depth`
+        See: :meth:`easytree.managers.EasyTreeManager.get_depth_for`
         """
         return target.depth
 
@@ -274,7 +274,7 @@ class EasyTreeManager(models.Manager):
         """
         :returns: the root node for the current node object.
 
-        See: :meth:`treebeard.Node.get_root`
+        See: :meth:`easytree.managers.EasyTreeManager.get_root`
         """
         cls = self.get_first_model()
         try:
@@ -298,7 +298,7 @@ class EasyTreeManager(models.Manager):
         """
         :returns: True if the node is a leaf node (else, returns False)
 
-        See: :meth:`treebeard.Node.is_leaf`
+        See: :meth:`easytree.managers.EasyTreeManager.is_leaf`
         """
         return target.rgt - target.lft == 1
         
@@ -306,7 +306,7 @@ class EasyTreeManager(models.Manager):
         """
         :returns: A queryset of all the node's children
 
-        See: :meth:`treebeard.Node.get_children`
+        See: :meth:`easytree.managers.EasyTreeManager.get_children`
         """
         return self.get_descendants_for(target).filter(depth=target.depth+1)
             
@@ -535,7 +535,6 @@ class EasyTreeManager(models.Manager):
     def add_child_to(self, target, new_object=None, pos=None):
         """
         Adds a child to the node.
-
         """
         cls = self.get_first_model()
         
