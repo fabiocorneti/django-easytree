@@ -124,8 +124,6 @@ class EasyTreeManager(models.Manager):
     def get_descendant_count(self, target):
         """
         :returns: the number of descendants of a node.
-
-        See: :meth:`treebeard.Node.get_descendant_count`
         """
         return (target.rgt - target.lft - 1) / 2
 
@@ -134,8 +132,6 @@ class EasyTreeManager(models.Manager):
         """
         :returns: A queryset containing the current node object's ancestors,
             starting by the root node and descending to the parent.
-
-        See: :meth:`treebeard.Node.get_ancestors`
         """
         cls = self.get_first_model()
         
@@ -313,26 +309,11 @@ class EasyTreeManager(models.Manager):
         See: :meth:`treebeard.Node.get_children`
         """
         return self.get_descendants_for(target).filter(depth=target.depth+1)
-        
-    def get_last_child_for(self, target):
-        """
-        :returns: The rightmost node's child, or None if it has no children.
-
-        Example::
-
-           node.get_last_child()
-        """
-        try:
-            return self.get_children_for(target).reverse()[0]
-        except IndexError:
-            return None
             
     def move(self, target, real_dest, pos=None):
         """
         Moves the current node and all it's descendants to a new position
         relative to another node.
-
-        See: :meth:`treebeard.Node.move`
         """
         
         stmts = []
@@ -464,8 +445,6 @@ class EasyTreeManager(models.Manager):
     def add_sibling_to(self, target, pos=None, new_object=None):
         """
         Adds a new node as a sibling to the current node object.
-
-        See: :meth:`treebeard.Node.add_sibling`
         """
         cls = self.get_first_model()
         
@@ -557,7 +536,6 @@ class EasyTreeManager(models.Manager):
         """
         Adds a child to the node.
 
-        See: :meth:`treebeard.Node.add_child`
         """
         cls = self.get_first_model()
         
@@ -594,8 +572,6 @@ class EasyTreeManager(models.Manager):
     def add_root(self, new_object=None):
         """
         Adds a root node to the tree.
-
-        See: :meth:`treebeard.Node.add_root`
         """
         cls = self.get_first_model()
 
@@ -640,11 +616,6 @@ class EasyTreeManager(models.Manager):
                 [Q(**{'%s__gt' % field: value})]))
             fields.append((field, value))
         return siblings.filter(reduce(operator.or_, filters))
-        try:
-            newpos = target._get_lastpos_in_path(siblings.all()[0].path)
-        except IndexError:
-            newpos, siblings = None, []
-        return newpos, siblings
         
     def _get_close_gap_sql(self, drop_lft, drop_rgt, tree_id):
         cls = self.get_first_model()
