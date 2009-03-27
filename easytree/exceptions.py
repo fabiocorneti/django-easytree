@@ -15,5 +15,9 @@ class InvalidMoveToDescendant(EasyTreeException):
 class MissingNodeOrderBy(EasyTreeException):
     """
     Raised when an operation needs a missing
-    :attr:`~treebeard.MP_Node.node_order_by` attribute
+    `node_order_by` attribute
     """
+
+class SingleRootAllowed(EasyTreeException):
+    pass
+        

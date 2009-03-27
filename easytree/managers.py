@@ -788,8 +788,7 @@ class EasyTreeManager(models.Manager):
         return (pos, dest, parent)                
         
     def process_validators(self, target, related, realrelated, pos, func=None, **kwargs):
-        for v in self.model._easytree_meta.validators:
-            validator = v()
+        for validator in self.model._easytree_meta.validators:
             validator_func = getattr(validator, 'validate_%s' % func)
             if validator_func:
                 validator_func(self, target, related, realrelated, pos, **kwargs) 
