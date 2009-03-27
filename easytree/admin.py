@@ -46,6 +46,10 @@ class EasyTreeAdmin(admin.ModelAdmin):
         
         fieldsets = super(EasyTreeAdmin, self).get_fieldsets(request, obj=None)
         
+        return self.add_fieldsets(fieldsets, request, obj=obj)
+        
+    def add_tree_fieldsets(self, fieldsets, request, obj=None):
+        
         if not obj:
             
             if not self.root_node_exists():
@@ -60,7 +64,7 @@ class EasyTreeAdmin(admin.ModelAdmin):
             return list(fieldsets) + [
                     ('Move', {'fields': ('relative_to', 'relative_position'), 'description': _('Only fill these fields if you want to move this node.'), 'classes': 'collapse'} )
             ]
-            
+        
     def move_view(self, request):
         
         error = None

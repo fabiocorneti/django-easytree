@@ -18,14 +18,11 @@ class EasyTreeModelBase(ModelBase):
     BaseEasyTree metaclass
     This metaclass parses EasytreeOptions
     """
-    
-    def __init__(cls, name, bases, attrs):
-        parents = [b for b in bases if isinstance(b, EasyTreeModelBase)]
-        if not parents:
-            return
-        easytree_opts = getattr(cls, 'EasyTreeMeta', None)
-        opts = EasytreeOptions(easytree_opts)
-        setattr(cls, '_easytree_meta', opts)
+    def __new__(cls, name, bases, attrs):
+        new = super(EasyTreeModelBase, cls).__new__(cls, name, bases, attrs)
+        easytree_opts = attrs.pop('EasyTreeMeta', None)
+        setattr(new, '_easytree_meta', EasytreeOptions(easytree_opts))
+        return new
 
 class BaseEasyTree(models.Model):
     

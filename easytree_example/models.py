@@ -16,7 +16,7 @@ class ExampleNode(BaseEasyTree):
     
     class Meta:
         ordering=('tree_id', 'lft')
-    
+
     def __unicode__(self):
         return self.title
         
@@ -25,6 +25,7 @@ class SubClassedExampleNode(ExampleNode):
     objects = EasyTreeManager()
 
     language = models.CharField(max_length=2, choices=settings.LANGUAGES)
+
     
 class SingleRootExampleNode(BaseEasyTree):
     
@@ -39,7 +40,10 @@ class SingleRootExampleNode(BaseEasyTree):
         
     class EasyTreeMeta:
         validators = (SingleRootAllowedValidator(),)
-    
+
+class SubClassedSingleRootExampleNode(SingleRootExampleNode):
+
+    language = models.CharField(max_length=2, choices=settings.LANGUAGES)
     
 def test_node_moved(sender, **kwargs):
     print kwargs
