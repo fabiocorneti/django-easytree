@@ -1,5 +1,6 @@
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js"></script>
+{% load easytree_tags %}
+{% jquery_ui_media %}
+
 <script type="text/javascript">
 
     var move_url = '{{ move_url }}'
@@ -58,10 +59,13 @@
         
         firstrow.appendTo(proxytbl)
         
+        item.droppable('disable').addClass('drop-disabled')
+        
         var nodes = get_child_nodes(item, false)
         $(nodes).each(function(){
-            $(this).droppable('disable') // disable drop on dragged nodes
+             
             $(this).clone().removeAttr("id").appendTo(proxytbl)
+            $(this).droppable('disable').addClass('drop-disabled') // disable drop on dragged nodes
         })
 
         return proxytbl
@@ -75,19 +79,18 @@
                 return make_proxy($(this))
             }
             
-            $(this).draggable({'helper': helper, opacity: 0.6})
-            
             var drp = $(this) // store this node for use in deactivate
-
+            
             var deactivate = function(event, ui) {
-                var nodes = get_child_nodes(drp) // enable drop on dragged nodes
-                $(nodes).each(function(){
-                    $(this).droppable('enable')
-                })
-            }
+                var nodes = get_child_nodes(drp, true) // enable drop on dragged nodes
+                $('.drop-disabled').droppable('enable').removeClass('drop-disabled')
+                
+            }   
+                     
+            $(this).draggable({'helper': helper, opacity: 0.6, stop: deactivate})
             
             var drop = function(event, ui) {
-                
+                deactivate(event, ui)
                 var dropped_on = $(this)
                 
                 $('#position-menu')
@@ -128,6 +131,14 @@
                             location.reload()
                                
                             }
+                            else {
+                                $('<div id="move-error"><p>' + data.error + '</p></div>').dialog(
+                                    { buttons: 
+                                        { "Ok": function() {
+                                            $(this).dialog("close");
+                                        }
+                                }})
+                            }
                         },
                     "json")
                     
@@ -138,7 +149,7 @@
 
             }
             
-            $(this).droppable({hoverClass: 'marked', tolerance: 'pointer', deactivate: deactivate, drop: drop })
+            $(this).droppable({hoverClass: 'marked', tolerance: 'pointer', drop: drop, accept: '.result_item' })
             
             $(document).bind('click', function() { $('#position-menu').unbind('click'); $('#position-menu').hide() })
 

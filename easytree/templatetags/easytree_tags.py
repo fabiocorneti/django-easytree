@@ -1,5 +1,7 @@
 from django.contrib.admin.templatetags.admin_list import result_headers, items_for_result
 from django.template import Library
+import itertools, copy
+
 register = Library()
 
 def results(cl):
@@ -58,13 +60,16 @@ def tree_item_iterator(items):
 
     """
     structure = {}
+    first_level = False
     for previous, current, next in previous_current_next(items):
         
         current_level = getattr(current, 'depth')
+
         if previous:
             structure['new_level'] = (getattr(previous,
                                               'depth') < current_level)
         else:
+            first_level = current_level
             structure['new_level'] = True
 
         if next:
@@ -73,7 +78,7 @@ def tree_item_iterator(items):
                                                        'depth'), -1)
         else:
             # All remaining levels need to be closed
-            structure['closed_levels'] = range(current_level, -1, -1)
+            structure['closed_levels'] = range(current_level - first_level, -1, -1)
 
         # Return a deep copy of the structure dict so this function can
         # be used in situations where the iterator is consumed
@@ -81,4 +86,15 @@ def tree_item_iterator(items):
         yield current, copy.deepcopy(structure)
 
 register.filter(tree_item_iterator)
+
+def jquery_ui_media():
+    return '''
+<script type="text/javascript" src="%s"></script>
+<script type="text/javascript" src="%s"></script>
+<link rel="stylesheet" type="text/css" href="%s" />''' % (
+        getattr(settings, 'EASTYTREE_JQUERY_JS', 'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js'),
+        getattr(settings, 'EASTYTREE_JQUERY_UI_JS', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js'),
+        getattr(settings, 'EASTYTREE_JQUERY_UI_CSS', 'not_set')
+    )
+register.simple_tag(jquery_ui_media)
 

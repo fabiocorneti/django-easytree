@@ -3,21 +3,30 @@ from django.utils import simplejson
 from django.utils.translation import ugettext_lazy as _
 from django.http import HttpResponse
 from easytree import utils
-from easytree.forms import extend_modelform
+from easytree.forms import BaseEasyTreeForm
 from django.db import transaction, connection
 
 class EasyTreeAdmin(admin.ModelAdmin):
 
     exclude = ('tree_id', 'depth', 'lft', 'rgt')
 
-    list_display = ('display',)
+    list_display = ('display_as_node',)
 
     ordering = ('lft',)
 
     change_list_template = 'admin/easytree_change_list.html'
     
+    form = BaseEasyTreeForm
+    
     toplevel_model_cache = None
     
+    def display_as_node(self, obj):
+        
+        return  u'%s %s' % (
+            u'>>>' * ((obj.depth or 1) -1),
+            unicode(obj)
+        )
+        
     def get_toplevel_model(self):
         if not self.toplevel_model_cache:
             self.toplevel_model_cache = utils.get_toplevel_model(self.model)
@@ -32,11 +41,7 @@ class EasyTreeAdmin(admin.ModelAdmin):
             root_node = None
             
         return root_node
-
-    def get_form(self, request, obj=None, **kwargs):
-        modelform = super(EasyTreeAdmin, self).get_form(request, obj=None, **kwargs)
-        return extend_modelform(modelform)
-        
+    
     def get_fieldsets(self, request, obj=None):
         
         fieldsets = super(EasyTreeAdmin, self).get_fieldsets(request, obj=None)
