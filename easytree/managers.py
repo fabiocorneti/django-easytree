@@ -563,7 +563,7 @@ class EasyTreeManager(models.Manager):
         
         if not self.is_leaf(target):
             # there are child nodes, delegate insertion to add_sibling
-            if getattr(target, 'node_order_by', None):
+            if self.model._easytree_meta.node_order_by:
                 pos = 'sorted-sibling'
             else:
                 pos = {'last-child': 'last-sibling', 'first-child': 'first-sibling'}[pos]
@@ -602,7 +602,7 @@ class EasyTreeManager(models.Manager):
         # do we have a root node already?
         last_root = self.get_last_root_node()
 
-        if last_root and getattr(last_root, 'node_order_by', None):
+        if last_root and self.model._easytree_meta.node_order_by:
             # there are root nodes and node_order_by has been set
             # delegate sorted insertion to add_sibling
             return self.add_sibling_to(last_root, 'sorted-sibling', new_object=new_object)
@@ -633,7 +633,7 @@ class EasyTreeManager(models.Manager):
         """
 
         fields, filters = [], []
-        for field in target.node_order_by:
+        for field in self.model._easytree_meta.node_order_by:
             value = getattr(newobj, field)
             filters.append(Q(*
                 [Q(**{f: v}) for f, v in fields] +
@@ -717,13 +717,13 @@ class EasyTreeManager(models.Manager):
     
     def validate_root(self, target, related, pos=None, **kwargs):
         
-        node_order_by = getattr(self.model, 'node_order_by', None)
+        node_order_by = self.model._easytree_meta.node_order_by
         
         self.process_validators(target, related, related, pos=None, func='add_root', **kwargs)
             
     def validate_sibling(self, target, related, pos=None, **kwargs):
         
-        node_order_by = getattr(self.model, 'node_order_by', None)
+        node_order_by = self.model._easytree_meta.node_order_by
         
         if pos not in ('first-sibling', 'left', 'right', 'last-sibling', 'sorted-sibling'):
             raise InvalidPosition('Invalid relative position: %s' % (pos,))
@@ -737,7 +737,7 @@ class EasyTreeManager(models.Manager):
         
     def validate_child(self, target, related, pos=None, **kwargs):
         
-        node_order_by = getattr(self.model, 'node_order_by', None)
+        node_order_by = self.model._easytree_meta.node_order_by
         
         if pos not in ('first-child', 'last-child', 'sorted-child'):
             raise InvalidPosition('Invalid relative position: %s' % (pos,))
@@ -751,7 +751,7 @@ class EasyTreeManager(models.Manager):
         
     def validate_move(self, target, related, pos, **kwargs):
         
-        node_order_by = getattr(self.model, 'node_order_by', None)
+        node_order_by = self.model._easytree_meta.node_order_by
 
         if pos not in ('first-sibling', 'left', 'right', 'last-sibling', 'sorted-sibling',
                        'first-child', 'last-child', 'sorted-child'):
@@ -788,7 +788,7 @@ class EasyTreeManager(models.Manager):
         return (pos, dest, parent)                
         
     def process_validators(self, target, related, realrelated, pos, func=None, **kwargs):
-        for v in getattr(self, 'validators', []):
+        for v in self.model._easytree_meta.validators:
             validator = v()
             validator_func = getattr(validator, 'validate_%s' % func)
             if validator_func:
@@ -800,7 +800,7 @@ class EasyTreeManager(models.Manager):
         """
         prepare the pos variable for the add_sibling method
         """
-        node_order_by = getattr(self.model, 'node_order_by', None)
+        node_order_by = self.model._easytree_meta.node_order_by
         
         if pos is None:
             if node_order_by:
@@ -816,7 +816,7 @@ class EasyTreeManager(models.Manager):
         """
         prepare the pos var for the move method
         """
-        node_order_by = getattr(self.model, 'node_order_by', None)
+        node_order_by = self.model._easytree_meta.node_order_by
         
         if pos is None:
             if node_order_by:

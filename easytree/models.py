@@ -1,7 +1,35 @@
 from django.db import models
+from django.db.models.base import ModelBase
 import logging
 
+class EasytreeOptions(object):
+
+    node_order_by = []
+    validators = []
+    
+    def __init__(self, opts):
+        if opts:       
+            for key, value in opts.__dict__.iteritems():
+                setattr(self, key, value)
+
+class EasyTreeModelBase(ModelBase):
+    
+    """
+    BaseEasyTree metaclass
+    This metaclass parses EasytreeOptions
+    """
+    
+    def __init__(cls, name, bases, attrs):
+        parents = [b for b in bases if isinstance(b, EasyTreeModelBase)]
+        if not parents:
+            return
+        easytree_opts = getattr(cls, 'EasyTreeMeta', None)
+        opts = EasytreeOptions(easytree_opts)
+        setattr(cls, '_easytree_meta', opts)
+
 class BaseEasyTree(models.Model):
+    
+    __metaclass__ = EasyTreeModelBase
     
     lft = models.PositiveIntegerField(db_index=True)
     rgt = models.PositiveIntegerField(db_index=True)
