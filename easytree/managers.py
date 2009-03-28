@@ -2,7 +2,6 @@ from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.db import transaction, connection
 from easytree import utils
-from easytree.moveoptions import MoveOptions
 from easytree.exceptions import InvalidMoveToDescendant, MissingNodeOrderBy, InvalidPosition
 from easytree.signals import node_moved
 from django.db.models import Q
