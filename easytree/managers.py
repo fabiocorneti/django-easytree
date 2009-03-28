@@ -309,6 +309,19 @@ class EasyTreeManager(models.Manager):
         See: :meth:`easytree.managers.EasyTreeManager.get_children`
         """
         return self.get_descendants_for(target).filter(depth=target.depth+1)
+
+    def get_last_child_for(self, target):
+        """
+        :returns: The rightmost node's child, or None if it has no children.
+
+        Example::
+
+           node.get_last_child()
+        """
+        try:
+            return self.get_children_for(target).reverse()[0]
+        except IndexError:
+            return None
             
     def move(self, target, real_dest, pos=None):
         """
