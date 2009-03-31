@@ -4,6 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.http import HttpResponse
 from easytree import utils
 from easytree.forms import BaseEasyTreeForm
+from easytree.exceptions import EasyTreeException
 from django.db import transaction, connection
 
 class EasyTreeAdmin(admin.ModelAdmin):
@@ -80,7 +81,7 @@ class EasyTreeAdmin(admin.ModelAdmin):
             
         try:
             self.toplevel_model.objects.move(node_to_move, relative_to_node, pos=relative_position)
-        except Exception, e:
+        except EasyTreeException, e:
             error = e.message
         
         json_data = {}
