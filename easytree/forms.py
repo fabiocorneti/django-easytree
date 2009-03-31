@@ -1,6 +1,7 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from easytree import utils
+from easytree.exceptions import EasyTreeException
 
 pos_map = {
     'first-sibling': _('first sibling'),
@@ -63,7 +64,7 @@ class BaseEasyTreeForm(forms.ModelForm):
                 
                 try:
                     model.objects.validate_root(None, relative_to, pos=relative_position, cleaned_data=cleaned_data)
-                except Exception, e:
+                except EasyTreeException, e:
                     raise forms.ValidationError, e.message
                     
             else:
@@ -72,21 +73,21 @@ class BaseEasyTreeForm(forms.ModelForm):
                     
                     try:
                         model.objects.validate_child(None, relative_to, pos=relative_position, cleaned_data=cleaned_data)
-                    except Exception, e:
+                    except EasyTreeException, e:
                         raise forms.ValidationError, e.message
                         
                 else:
                     
                     try:
                         model.objects.validate_sibling(None, relative_to, pos=relative_position, cleaned_data=cleaned_data)
-                    except Exception, e:
+                    except EasyTreeException, e:
                         raise forms.ValidationError, e.message
                         
         else:
             if relative_to:
                 try:
                     model.objects.validate_move(self.instance, relative_to, pos=relative_position, cleaned_data=cleaned_data)
-                except Exception, e:
+                except EasyTreeException, e:
                     raise forms.ValidationError, e.message        
         
         cleaned_data['relative_to'] = relative_to
