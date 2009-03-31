@@ -13,7 +13,7 @@ pos_map = {
     'sorted-child': _('sorted child')
 }
 
-class EasytreeModelChoiceField(forms.ModelChoiceField):
+class EasyTreeModelChoiceField(forms.ModelChoiceField):
     
     def label_from_instance(self, obj):
         return u'%s %s' % (
@@ -36,7 +36,7 @@ class BaseEasyTreeForm(forms.ModelForm):
         
         super(BaseEasyTreeForm, self).__init__(*args, **kwargs)
         
-        self.fields['relative_to'] = EasytreeModelChoiceField(queryset=self.toplevel_model.objects.order_by('tree_id', 'lft'), required=False)
+        self.fields['relative_to'] = EasyTreeModelChoiceField(queryset=self.toplevel_model.objects.order_by('tree_id', 'lft'), required=False)
             
         if getattr(self.instance, 'node_order_by', None):
             relative_positions_choices = ('sorted-sibling', 'sorted-child')

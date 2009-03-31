@@ -1,12 +1,15 @@
 Install
 =======
 
+-------------------------
 Installation instructions
 -------------------------
 
-1. Make sure that you have Mercurial_ installed, and that you can run its
+1. Make sure that you have `Mercurial`__ installed, and that you can run its
    commands from a shell. (Enter ``hg help`` at a shell prompt to test
    this.)
+
+__ http://www.selenic.com/mercurial/ 
 
 2. Check out Django easytree from the mercurial repo like so:
 
@@ -38,15 +41,17 @@ Installation instructions
 
     (Note that this should be run from a shell prompt, not a Python interactive
     prompt.)
-
-
+    
+-----    
 Usage
 -----
 
 Add easytree to `INSTALLED_APPS`
 
+`````````
 In models
 `````````
+
 .. code-block:: python
 
     from easytree.models import BaseEasyTree
@@ -54,13 +59,23 @@ In models
     
     class ExampleNode(BaseEasyTree):
        
-        # any other fields you want here
+        """ any other fields you want here """
     
         objects = EasyTreeManager()
     
         class Meta:
-            ordering=('tree_id', 'lft')
+            ordering = ('tree_id', 'lft')
+        
+        class EasyTreeMeta:
+            """ Defaults are set to this if EasyTreeMeta is not defined. """
+            validators = []
+            node_order_by = []
 
+For EasyTreeMeta options see :ref:`easytree_meta_options`
+
+.. _easytree_admin: 
+
+````````````
 In the admin
 ````````````
 
@@ -77,19 +92,24 @@ In the admin
     
 If you alter list_display in your admin class, remember to add 'display_as_node'.
 
+
+------------------
 Available settings
 ------------------
 
+```````````````````
 EASTYTREE_JQUERY_JS
 ```````````````````
 
 Default: ``'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js'`` (string)
 
+``````````````````````
 EASTYTREE_JQUERY_UI_JS
 ``````````````````````
 
 Default: ``'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js'`` (string)
 
+```````````````````````
 EASTYTREE_JQUERY_UI_CSS
 ```````````````````````
 

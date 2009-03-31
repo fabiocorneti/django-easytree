@@ -2,8 +2,12 @@ from django.db import models
 from django.db.models.base import ModelBase
 import logging
 
-class EasytreeOptions(object):
+class EasyTreeOptions(object):
 
+    """
+    Options class for EasyTreeModelBase.
+    """
+    
     node_order_by = []
     validators = []
     
@@ -15,16 +19,22 @@ class EasytreeOptions(object):
 class EasyTreeModelBase(ModelBase):
     
     """
-    BaseEasyTree metaclass
-    This metaclass parses EasytreeOptions
+    BaseEasyTree metaclass.
+    
+    This metaclass parses EasyTreeOptions.
     """
+    
     def __new__(cls, name, bases, attrs):
         new = super(EasyTreeModelBase, cls).__new__(cls, name, bases, attrs)
         easytree_opts = attrs.pop('EasyTreeMeta', None)
-        setattr(new, '_easytree_meta', EasytreeOptions(easytree_opts))
+        setattr(new, '_easytree_meta', EasyTreeOptions(easytree_opts))
         return new
 
 class BaseEasyTree(models.Model):
+    
+    """
+    Abstract base class for trees
+    """
     
     __metaclass__ = EasyTreeModelBase
     
@@ -34,6 +44,9 @@ class BaseEasyTree(models.Model):
     depth = models.PositiveIntegerField(db_index=True)
 
     def make_materialized_path(self, field, sep, include_root):
+        """
+        Helper to make a materialized path to this node.
+        """
         parents = self.__class__.objects.get_ancestors_for(self)
         return sep.join([getattr(parent, field) for parent in list(parents) + [self] \
             if not self.__class__.objects.is_root(parent) or include_root] )
