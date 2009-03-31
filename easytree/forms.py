@@ -18,7 +18,7 @@ class EasyTreeModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return u'%s %s' % (
             u'>>>' * ((obj.depth or 1) -1),
-            super(EasytreeModelChoiceField, self).label_from_instance(obj)
+            super(EasyTreeModelChoiceField, self).label_from_instance(obj)
         )
 
 class BaseEasyTreeForm(forms.ModelForm):
