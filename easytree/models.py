@@ -50,7 +50,22 @@ class BaseEasyTree(models.Model):
         parents = self.__class__.objects.get_ancestors_for(self)
         return sep.join([getattr(parent, field) for parent in list(parents) + [self] \
             if not self.__class__.objects.is_root(parent) or include_root] )
+    
+    def tree(self):
+        return self.__class__.objects.get_tree(parent=self)
+    
+    def decendants(self):
+        return self.__class__.objects.get_decendants_for(self)
         
+    def ancestors(self):
+        return self.__class__.objects.get_ancestors_for(self)
+    
+    def is_root(self):
+        return self.__class__.objects.is_root(self)
+    
+    def is_leaf(self):
+        return self.__class__.objects.is_leaf(self)
+    
     class Meta:
         abstract = True
 
