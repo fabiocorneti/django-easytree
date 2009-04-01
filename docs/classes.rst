@@ -25,7 +25,12 @@ Classes
       .. attribute:: rgt
       .. attribute:: tree_id
       .. automethod:: make_materialized_path
-
+      .. automethod:: tree
+      .. automethod:: decendants
+      .. automethod:: ancestors
+      .. automethod:: is_root
+      .. automethod:: is_leaf
+      
 :mod:`easytree.managers` --- Managers
 -------------------------------------
 

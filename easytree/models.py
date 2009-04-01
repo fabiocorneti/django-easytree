@@ -52,18 +52,23 @@ class BaseEasyTree(models.Model):
             if not self.__class__.objects.is_root(parent) or include_root] )
     
     def tree(self):
+        """ Returns a queryset of this node and all decendants """
         return self.__class__.objects.get_tree(parent=self)
     
     def decendants(self):
+        """ Returns all decendants of this node """
         return self.__class__.objects.get_decendants_for(self)
         
     def ancestors(self):
+        """ Returns all ancestors of this node """
         return self.__class__.objects.get_ancestors_for(self)
     
     def is_root(self):
+        """ Returns True if this is a root node """
         return self.__class__.objects.is_root(self)
     
     def is_leaf(self):
+        """ Returns True if this is a leaf node """
         return self.__class__.objects.is_leaf(self)
     
     class Meta:
