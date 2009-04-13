@@ -55,9 +55,9 @@ class BaseEasyTree(models.Model):
         """ Returns a queryset of this node and all decendants """
         return self.__class__.objects.get_tree(parent=self)
     
-    def decendants(self):
+    def descendants(self):
         """ Returns all decendants of this node """
-        return self.__class__.objects.get_decendants_for(self)
+        return self.__class__.objects.get_descendants_for(self)
         
     def ancestors(self):
         """ Returns all ancestors of this node """
