@@ -1,0 +1,107 @@
+# django-easytree Italian translation
+# Copyright (C) 2009 - Oyvind Saltvik
+# This file is distributed under the same license as django-easytree.
+# Fabio Corneti <info@corneti.com>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-08-13 00:35+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: admin.py:61
+msgid "Select where in the tree you want this node located."
+msgstr "Seleziona la posizione del nodo nell'albero."
+
+#: admin.py:66
+msgid "Only fill these fields if you want to move this node."
+msgstr "Imposta i seguenti campi solo se desideri spostare il nodo."
+
+#: admin.py:78
+msgid "Invalid GET parameters"
+msgstr "Richiesta invalida"
+
+#: admin.py:80
+msgid "No such model instance"
+msgstr "Istanza sconosciuta"
+
+#: forms.py:7
+msgid "first sibling"
+msgstr "primo fratello"
+
+#: forms.py:8
+msgid "left"
+msgstr "sinistra"
+
+#: forms.py:9
+msgid "right"
+msgstr "destra"
+
+#: forms.py:10
+msgid "last sibling"
+msgstr "ultimo fratello"
+
+#: forms.py:11
+msgid "sorted sibling"
+msgstr "fratello ordinato"
+
+#: forms.py:12
+msgid "first child"
+msgstr "primo figlio"
+
+#: forms.py:13
+msgid "last child"
+msgstr "ultimo figlio"
+
+#: forms.py:14
+msgid "sorted child"
+msgstr "figlio ordinato"
+
+#: templates/admin/easytree_change_list.html:24
+msgid "Home"
+msgstr "Pagina iniziale"
+
+#: templates/admin/easytree_change_list.html:41
+msgid "First child"
+msgstr "Primo figlio"
+
+#: templates/admin/easytree_change_list.html:42
+msgid "Last child"
+msgstr "Ultimo figlio"
+
+#: templates/admin/easytree_change_list.html:43
+msgid "First sibling"
+msgstr "Primo fratello"
+
+#: templates/admin/easytree_change_list.html:44
+msgid "Last sibling"
+msgstr "Ultimo fratello"
+
+#: templates/admin/easytree_change_list.html:45
+msgid "Previous sibling"
+msgstr "Fratello precedente"
+
+#: templates/admin/easytree_change_list.html:46
+msgid "Next sibling"
+msgstr "Fratello successivo"
+
+#: templates/admin/easytree_change_list.html:54
+#, python-format
+msgid "Add %(name)s"
+msgstr "Aggiungi %(name)s"
+
+#: templates/admin/easytree_change_list.html:62
+msgid "Please correct the error below."
+msgid_plural "Please correct the errors below."
+msgstr[0] "Correggi l'errore evidenziato."
+msgstr[1] "Correggi gli errori evidenziati."
+
+#: templates/admin/easytree_change_list.html:73
+msgid "Filter"
+msgstr "Filtro"
