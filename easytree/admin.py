@@ -98,12 +98,12 @@ class EasyTreeAdmin(admin.ModelAdmin):
         
         from django.conf.urls.defaults import patterns, url
 
-        info = self.admin_site.name, self.model._meta.app_label, self.model._meta.module_name
+        info = self.model._meta.app_label, self.model._meta.module_name
         
         return patterns('',
             url(r'^move/$',
                 self.admin_site.admin_view(self.move_view),
-                name='%sadmin_%s_%s_move' % info),
+                name='%s_%s_move' % info),
         ) + admin_urls
         
     def changelist_view(self, request, extra_context=None):
@@ -111,7 +111,7 @@ class EasyTreeAdmin(admin.ModelAdmin):
         from django.core.urlresolvers import reverse
         extra_context = extra_context or {}
         
-        info = self.admin_site.name, self.model._meta.app_label, self.model._meta.module_name
-        extra_context['move_url'] = reverse('%sadmin_%s_%s_move' % info)
+        info = self.model._meta.app_label, self.model._meta.module_name
+        extra_context['move_url'] = reverse('admin:%s_%s_move' % info)
         
         return super(EasyTreeAdmin, self).changelist_view(request, extra_context=extra_context)
