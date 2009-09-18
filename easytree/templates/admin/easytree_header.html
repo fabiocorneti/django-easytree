@@ -3,95 +3,95 @@
 
 <script type="text/javascript">
 
-    var move_url = '{{ move_url }}'
+    var move_url = '{{ move_url }}';
 
     function get_object_pk(item) {
-        var html_id = item.attr("id")
-        var re = new RegExp('object_id_(\\d+)')
-        var m = re.exec(html_id)
-        return parseInt(m[1])
+        var html_id = item.attr("id");
+        var re = new RegExp('object_id_(\\d+)');
+        var m = re.exec(html_id);
+        return parseInt(m[1]);
     }
 
     function find_depth(item) {
-        var lvl = 0
+        var lvl = 0;
         for (var i=10;i>=1;i--) {
-            lvl = i
+            lvl = i;
             if (item.hasClass('level_' + i)) break;
         }
-        return lvl
+        return lvl;
     }
     
     function alter_depth(item, from_depth, to_depth) {
-        item.removeClass('level_' + from_depth)
-        item.addClass('level_' + to_depth)
-        var depthstr = ''
-        for (var i=1; i < to_depth; i++) depthstr += '&gt;&gt;&gt; '
-        $('.display_indent', item).html(depthstr)
+        item.removeClass('level_' + from_depth);
+        item.addClass('level_' + to_depth);
+        var depthstr = '';
+        for (var i=1; i < to_depth; i++) depthstr += '&gt;&gt;&gt; ';
+        $('.display_indent', item).html(depthstr);
     }
 
     function get_child_nodes(item, include_self) {
         
-        var nodes = []
-        var abovedepth = find_depth($(item))
+        var nodes = [];
+        var abovedepth = find_depth($(item));
         
-        if (include_self) nodes.push(item)
+        if (include_self) nodes.push(item);
 
-        var curitem = item.next()
+        var curitem = item.next();
         while(curitem.get(0) && find_depth(curitem)>abovedepth) {
-            nodes.push(curitem)
-            curitem=curitem.next()
+            nodes.push(curitem);
+            curitem=curitem.next();
         }
 
-        return nodes
+        return nodes;
     }
 
     function make_proxy(item) {
         
-        var proxytbl = $('<table cellspacing="0"></table>')
-        proxytbl.width(item.closest('table').width())
+        var proxytbl = $('<table cellspacing="0"></table>');
+        proxytbl.width(item.closest('table').width());
         
-        var firstrow = item.clone()
-        var old_tds = $('td, th', item)
-        var new_tds = $('td, th', firstrow)
+        var firstrow = item.clone();
+        var old_tds = $('td, th', item);
+        var new_tds = $('td, th', firstrow);
         for (var i=0;i<old_tds.length;i++) {
-            $(new_tds.get(i)).width($(old_tds.get(i)).width())
+            $(new_tds.get(i)).width($(old_tds.get(i)).width());
         }
         
-        firstrow.appendTo(proxytbl)
+        firstrow.appendTo(proxytbl);
         
-        item.droppable('disable').addClass('drop-disabled')
+        item.droppable('disable').addClass('drop-disabled');
         
-        var nodes = get_child_nodes(item, false)
+        var nodes = get_child_nodes(item, false);
         $(nodes).each(function(){
              
-            $(this).clone().removeAttr("id").appendTo(proxytbl)
-            $(this).droppable('disable').addClass('drop-disabled') // disable drop on dragged nodes
-        })
+            $(this).clone().removeAttr("id").appendTo(proxytbl);
+            $(this).droppable('disable').addClass('drop-disabled'); // disable drop on dragged nodes
+        });
 
-        return proxytbl
+        return proxytbl;
     }
-            
+    
+    {% if enable_dd %}
     $(document).ready(function() {
         
         $('tr.result_item').each(function() {
             
             function helper() {
-                return make_proxy($(this))
+                return make_proxy($(this));
             }
             
-            var drp = $(this) // store this node for use in deactivate
+            var drp = $(this); // store this node for use in deactivate
             
             var deactivate = function(event, ui) {
-                var nodes = get_child_nodes(drp, true) // enable drop on dragged nodes
-                $('.drop-disabled').droppable('enable').removeClass('drop-disabled')
-                
-            }   
+                var nodes = get_child_nodes(drp, true); // enable drop on dragged nodes
+                $('.drop-disabled').droppable('enable').removeClass('drop-disabled');    
+            };
                      
-            $(this).draggable({'helper': helper, opacity: 0.6, stop: deactivate})
+            $(this).draggable({'helper': helper, opacity: 0.6, stop: deactivate});
             
             var drop = function(event, ui) {
-                deactivate(event, ui)
-                var dropped_on = $(this)
+                deactivate(event, ui);
+                var dropped_on = $(this);
                 
                 $('#position-menu')
                     .css("top", event.pageY-15)
@@ -99,14 +99,14 @@
                     
                     .bind('click', function(e){
                         
-                        $(this).unbind('click').hide()
-                        var relative_position = $(e.target).closest('.position').attr("id")
+                        $(this).unbind('click').hide();
+                        var relative_position = $(e.target).closest('.position').attr("id");
 
                         var postdata = {
                             node_to_move: get_object_pk(ui.draggable),
                             relative_to_node: get_object_pk(dropped_on),
                             relative_position: relative_position
-                        }
+                        };
                         
                         $.post(move_url, postdata, function (data, textStatus) {
                             
@@ -128,7 +128,7 @@
                                     }
                                 }
                             
-                            location.reload()
+                            location.reload();
                                
                             }
                             else {
@@ -137,24 +137,25 @@
                                         { "Ok": function() {
                                             $(this).dialog("close");
                                         }
-                                }})
+                                }});
                             }
                         },
-                    "json")
+                    "json");
                     
                         // alert($(e.target).closest('.position').attr("id") + ' ' + get_object_pk(ui.draggable) + ' ' + get_object_pk(dropped_on) )
                     })
                     
-                    .show()
+                    .show();
 
-            }
+            };
             
-            $(this).droppable({hoverClass: 'marked', tolerance: 'pointer', drop: drop, accept: '.result_item' })
+            $(this).droppable({hoverClass: 'marked', tolerance: 'pointer', drop: drop, accept: '.result_item' });
             
-            $(document).bind('click', function() { $('#position-menu').unbind('click'); $('#position-menu').hide() })
+            $(document).bind('click', function() { $('#position-menu').unbind('click'); $('#position-menu').hide(); });
 
-        })
-    })
+        });
+    });
+    {% endif %}
 </script>
 <style type="text/css">
     .marked { background: #ffcccc; }

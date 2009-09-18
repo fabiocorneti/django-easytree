@@ -4,14 +4,14 @@ from easytree import utils
 from easytree.exceptions import EasyTreeException
 
 pos_map = {
-    'first-sibling': _('first sibling'),
-    'left': _('left'),
-    'right': _('right'),
-    'last-sibling': _('last sibling'),
-    'sorted-sibling': _('sorted sibling'),
-    'first-child': _('first child'),
-    'last-child': _('last child'),
-    'sorted-child': _('sorted child')
+    'first-sibling': _('First sibling'),
+    'left': _('Previous sibling'),
+    'right': _('Next sibling'),
+    'last-sibling': _('Last sibling'),
+    'sorted-sibling': _('Sorted sibling'),
+    'first-child': _('First child'),
+    'last-child': _('Last child'),
+    'sorted-child': _('Sorted child')
 }
 
 class EasyTreeModelChoiceField(forms.ModelChoiceField):

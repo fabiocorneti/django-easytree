@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from django.utils import simplejson
 from django.utils.translation import ugettext_lazy as _
@@ -22,7 +23,6 @@ class EasyTreeAdmin(admin.ModelAdmin):
     toplevel_model_cache = None
     
     def display_as_node(self, obj):
-        
         return  u'%s %s' % (
             u'>>>' * ((obj.depth or 1) -1),
             unicode(obj)
@@ -50,24 +50,21 @@ class EasyTreeAdmin(admin.ModelAdmin):
         return self.add_tree_fieldsets(fieldsets, request, obj=obj)
         
     def add_tree_fieldsets(self, fieldsets, request, obj=None):
-        
         if not obj:
-            
             if not self.root_node_exists():
                 return fieldsets
             else:
                 return list(fieldsets) + [
                     ('Position', {'fields': ('relative_to', 'relative_position'), 
-                        'description': _('Select where in the tree you want this node located.')
+                        'description': _('Select the location of this node in the tree.')
                     }),
                 ]
         else:
             return list(fieldsets) + [
-                    ('Move', {'fields': ('relative_to', 'relative_position'), 'description': _('Only fill these fields if you want to move this node.'), 'classes': 'collapse'} )
+                ('Move', {'fields': ('relative_to', 'relative_position'), 'description': _('Fill the following fields only if you want to move this node.'), 'classes': 'collapse'} )
             ]
         
     def move_view(self, request):
-        
         error = None
         
         try:
@@ -111,6 +108,10 @@ class EasyTreeAdmin(admin.ModelAdmin):
         from django.core.urlresolvers import reverse
         extra_context = extra_context or {}
         
+        extra_context['enable_dd'] = True
+        if getattr(settings, 'EASYTREE_DISABLE_CHANGELIST_DD', False):
+            extra_context['enable_dd'] = False
+
         info = self.model._meta.app_label, self.model._meta.module_name
         extra_context['move_url'] = reverse('admin:%s_%s_move' % info)
         

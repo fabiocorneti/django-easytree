@@ -89,13 +89,16 @@ def tree_item_iterator(items):
 register.filter(tree_item_iterator)
 
 def jquery_ui_media():
-    return '''
-<script type="text/javascript" src="%s"></script>
-<script type="text/javascript" src="%s"></script>
-<link rel="stylesheet" type="text/css" href="%s" />''' % (
-        getattr(settings, 'EASTYTREE_JQUERY_JS', 'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js'),
-        getattr(settings, 'EASTYTREE_JQUERY_UI_JS', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js'),
-        getattr(settings, 'EASTYTREE_JQUERY_UI_CSS', 'not_set')
-    )
+    if getattr(settings, 'EASYTREE_DISABLE_CHANGELIST_DD', False) == True:
+        return ''
+    else:
+        return '''
+    <script type="text/javascript" src="%s"></script>
+    <script type="text/javascript" src="%s"></script>
+    <link rel="stylesheet" type="text/css" href="%s" />''' % (
+            getattr(settings, 'EASTYTREE_JQUERY_JS', 'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js'),
+            getattr(settings, 'EASTYTREE_JQUERY_UI_JS', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js'),
+            getattr(settings, 'EASTYTREE_JQUERY_UI_CSS', 'not_set')
+        )
 register.simple_tag(jquery_ui_media)
 

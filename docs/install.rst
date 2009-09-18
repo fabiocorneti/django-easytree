@@ -97,6 +97,14 @@ If you alter list_display in your admin class, remember to add 'display_as_node'
 Available settings
 ------------------
 
+```````````````````````````````
+EASTYTREE_DISABLE_CHANGELIST_DD
+```````````````````````````````
+
+Default: False
+
+Set this to True if you want to disable drag and drop in the change list.
+
 ```````````````````
 EASTYTREE_JQUERY_JS
 ```````````````````
