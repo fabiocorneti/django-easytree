@@ -10,7 +10,8 @@ class EasyTreeOptions(object):
     
     node_order_by = []
     validators = []
-    
+    max_depth = 0
+
     def __init__(self, opts):
         if opts:       
             for key, value in opts.__dict__.iteritems():

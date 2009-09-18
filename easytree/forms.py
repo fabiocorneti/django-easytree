@@ -40,8 +40,11 @@ class BaseEasyTreeForm(forms.ModelForm):
         self.fields['relative_to'] = EasyTreeModelChoiceField(
             queryset=self.toplevel_model.objects.order_by('tree_id', 'lft'), 
             required=False, label=_("Relative to"))
-            
-        if getattr(self.instance, 'node_order_by', None):
+        
+        max_depth = getattr(self.instance._easytree_meta, 'max_depth', 0)
+        if max_depth == 1:
+            relative_positions_choices = ('first-sibling', 'left', 'right', 'last-sibling')
+        elif getattr(self.instance, 'node_order_by', None):
             relative_positions_choices = ('sorted-sibling', 'sorted-child')
         else:
             relative_positions_choices = [k for k in pos_map.keys() if k not in ('sorted-sibling', 'sorted-child')]

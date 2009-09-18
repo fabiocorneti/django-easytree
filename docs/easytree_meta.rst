@@ -21,3 +21,8 @@ node_order_by
 -------------
 
 Not implemented yet.
+
+max_depth
+---------
+
+Max tree depth; implementation in progress.
