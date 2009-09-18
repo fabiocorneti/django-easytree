@@ -37,7 +37,9 @@ class BaseEasyTreeForm(forms.ModelForm):
         
         super(BaseEasyTreeForm, self).__init__(*args, **kwargs)
         
-        self.fields['relative_to'] = EasyTreeModelChoiceField(queryset=self.toplevel_model.objects.order_by('tree_id', 'lft'), required=False)
+        self.fields['relative_to'] = EasyTreeModelChoiceField(
+            queryset=self.toplevel_model.objects.order_by('tree_id', 'lft'), 
+            required=False, label=_("Relative to"))
             
         if getattr(self.instance, 'node_order_by', None):
             relative_positions_choices = ('sorted-sibling', 'sorted-child')
@@ -46,7 +48,8 @@ class BaseEasyTreeForm(forms.ModelForm):
                 
         self.fields['relative_position'] = forms.ChoiceField(
             required=False,
-            choices=[('','-------')] + [(k, v) for k, v in pos_map.items() if k in relative_positions_choices]
+            choices=[('','-------')] + [(k, v) for k, v in pos_map.items() if k in relative_positions_choices],
+            label=_("Relative position")
         )
 
     def clean(self):
