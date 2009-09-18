@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-18 22:01+0200\n"
+"POT-Creation-Date: 2009-09-18 22:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Fabio Corneti <info@corneti.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -62,6 +62,14 @@ msgstr "Secondo nodo di livello inferiore"
 #: forms.py:14
 msgid "Sorted child"
 msgstr "Figlio ordinato"
+
+#: forms.py:42
+msgid "Relative to"
+msgstr "Relativo a"
+
+#: forms.py:52
+msgid "Relative position"
+msgstr "Posizione relativa"
 
 #: templates/admin/easytree_change_list.html:24
 msgid "Home"
