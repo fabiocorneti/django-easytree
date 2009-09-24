@@ -1,0 +1,374 @@
+Tree structure test
+===================
+
+We are going to create the following structure::
+    
+    pk  tree_id  depth  lft  rgt
+    1   1        1      1    16   action
+    2   1        2      2    9    +-- platformer
+    3   1        3      3    4    |   |-- platformer_2d
+    4   1        3      5    6    |   |-- platformer_3d
+    5   1        3      7    8    |   +-- platformer_4d
+    6   1        2      10   15   +-- shmup
+    7   1        3      11   12       |-- shmup_vertical
+    8   1        3      13   14       +-- shmup_horizontal
+    9   2        1      1    6    rpg
+    10  2        2      2    3    |-- arpg
+    11  2        2      4    5    +-- trpg
+
+Let's build the first tree::
+
+    >>> from tests.models import TestNode
+    >>> action = TestNode(title='action')
+    >>> action.save()
+    >>> action.tree_id
+    1
+    >>> action.rgt
+    2
+    >>> action.lft
+    1
+    >>> action.depth
+    1
+
+The current API to create a new node in a certain position programmatically 
+could be much better::
+
+    >>> platformer = TestNode(title='platformer')
+    >>> platformer.easytree_relative_to = action
+    >>> platformer.easytree_relative_position = 'last-child'
+    >>> platformer.save()
+
+Verify the current tree state::
+
+    >>> action.tree_id
+    1
+    >>> action.rgt
+    4
+    >>> action.lft
+    1
+    >>> action.depth
+    1
+    >>> platformer.tree_id
+    1
+    >>> platformer.rgt
+    3
+    >>> platformer.lft
+    2
+    >>> platformer.depth
+    2
+    >>> action.tree()
+    [<TestNode: action>, <TestNode: platformer>]
+    >>> action.descendants()
+    [<TestNode: platformer>]
+    >>> action.children()
+    [<TestNode: platformer>]
+    >>> TestNode.objects.get_parent_for(platformer)
+    <TestNode: action>
+
+Let's add the first child to the ``platformer`` node...::
+
+    >>> platformer_2d = TestNode(title='platformer_2d')
+    >>> platformer_2d.easytree_relative_to = platformer
+    >>> platformer_2d.easytree_relative_position = 'last-child'
+    >>> platformer_2d.save()
+
+The action instance is not up to date...::
+
+    >>> action.rgt
+    4
+
+... because its rgt value has been modified by straight sql queries, 
+so if we need to use it as a reference for node management operations or verifications, 
+we need to reload it from the db::
+
+    >>> action = TestNode.objects.get(pk=action.pk)
+    >>> action.rgt
+    6
+
+Proceed with tree building::
+
+    >>> platformer = TestNode.objects.get(pk=platformer.pk)
+    >>> platformer_3d = TestNode(title='platformer_3d')
+    >>> platformer_3d.easytree_relative_to = platformer
+    >>> platformer_3d.easytree_relative_position = 'last-child'
+    >>> platformer_3d.save()
+
+... with positioning variations::
+
+    >>> platformer_4d = TestNode(title='platformer_4d')
+    >>> platformer_4d.easytree_relative_to = platformer_3d
+    >>> platformer_4d.easytree_relative_position = 'right'
+    >>> platformer_4d.save()
+
+Another batch of tree structure checks::
+    
+    >>> action = TestNode.objects.get(pk=action.pk)
+    >>> platformer = TestNode.objects.get(pk=platformer.pk)
+    >>> action.tree_id
+    1
+    >>> action.rgt
+    10
+    >>> action.lft
+    1
+    >>> action.depth
+    1
+    >>> action.tree()
+    [<TestNode: action>, <TestNode: platformer>, <TestNode: platformer_2d>, <TestNode: platformer_3d>, <TestNode: platformer_4d>]
+    >>> action.descendants()
+    [<TestNode: platformer>, <TestNode: platformer_2d>, <TestNode: platformer_3d>, <TestNode: platformer_4d>]
+    >>> action.children()
+    [<TestNode: platformer>]
+    >>> platformer.tree_id
+    1
+    >>> platformer.rgt
+    9
+    >>> platformer.lft
+    2
+    >>> platformer.depth
+    2
+    >>> platformer.tree()
+    [<TestNode: platformer>, <TestNode: platformer_2d>, <TestNode: platformer_3d>, <TestNode: platformer_4d>]
+    >>> platformer.descendants()
+    [<TestNode: platformer_2d>, <TestNode: platformer_3d>, <TestNode: platformer_4d>]
+    >>> platformer.children()
+    [<TestNode: platformer_2d>, <TestNode: platformer_3d>, <TestNode: platformer_4d>]
+    >>> TestNode.objects.get_parent_for(platformer_2d)
+    <TestNode: platformer>
+    >>> TestNode.objects.get_parent_for(platformer_3d)
+    <TestNode: platformer>
+    >>> TestNode.objects.get_parent_for(platformer_4d)
+    <TestNode: platformer>
+
+Finish the tree construction::
+    
+    >>> shmup = TestNode(title='shmup')
+    >>> shmup.easytree_relative_to = platformer
+    >>> shmup.easytree_relative_position = 'right'
+    >>> shmup.save()
+    >>> shmup_vertical = TestNode(title='shmup_vertical')
+    >>> shmup_vertical.easytree_relative_to = shmup
+    >>> shmup_vertical.easytree_relative_position = 'last-child'
+    >>> shmup_vertical.save()
+    >>> shmup_horizontal = TestNode(title='shmup_horizontal')
+    >>> shmup_horizontal.easytree_relative_to = shmup_vertical
+    >>> shmup_horizontal.easytree_relative_position = 'right'
+    >>> shmup_horizontal.save()
+    
+    >>> rpg = TestNode(title='rpg')
+    >>> rpg.save()
+    >>> arpg = TestNode(title='arpg')
+    >>> arpg.easytree_relative_to = rpg
+    >>> arpg.easytree_relative_position = 'last-child'
+    >>> arpg.save()
+    >>> trpg = TestNode(title='trpg')
+    >>> trpg.easytree_relative_to = arpg
+    >>> trpg.easytree_relative_position = 'right'
+    >>> trpg.save()
+
+Final tree checks::
+    
+    >>> action = TestNode.objects.get(pk=action.pk)
+    >>> shmup = TestNode.objects.get(pk=shmup.pk)
+    >>> rpg = TestNode.objects.get(pk=rpg.pk)
+    
+    >>> action.pk
+    1
+    >>> action.tree_id
+    1
+    >>> action.depth
+    1
+    >>> action.lft
+    1
+    >>> action.rgt
+    16
+
+    >>> action.tree()
+    [<TestNode: action>, <TestNode: platformer>, <TestNode: platformer_2d>, <TestNode: platformer_3d>, <TestNode: platformer_4d>, <TestNode: shmup>, <TestNode: shmup_vertical>, <TestNode: shmup_horizontal>]
+    >>> action.descendants()
+    [<TestNode: platformer>, <TestNode: platformer_2d>, <TestNode: platformer_3d>, <TestNode: platformer_4d>, <TestNode: shmup>, <TestNode: shmup_vertical>, <TestNode: shmup_horizontal>]
+    >>> action.children()
+    [<TestNode: platformer>, <TestNode: shmup>]
+    
+    >>> platformer.pk
+    2
+    >>> platformer.tree_id
+    1
+    >>> platformer.depth
+    2
+    >>> platformer.lft
+    2
+    >>> platformer.rgt
+    9
+    >>> platformer.tree()
+    [<TestNode: platformer>, <TestNode: platformer_2d>, <TestNode: platformer_3d>, <TestNode: platformer_4d>]
+    >>> platformer.descendants()
+    [<TestNode: platformer_2d>, <TestNode: platformer_3d>, <TestNode: platformer_4d>]
+    >>> platformer.children()
+    [<TestNode: platformer_2d>, <TestNode: platformer_3d>, <TestNode: platformer_4d>]
+
+    >>> platformer_2d.pk
+    3
+    >>> platformer_2d.tree_id
+    1
+    >>> platformer_2d.depth
+    3
+    >>> platformer_2d.lft
+    3
+    >>> platformer_2d.rgt
+    4
+    >>> platformer_2d.ancestors()
+    [<TestNode: action>, <TestNode: platformer>]
+    >>> platformer_2d.descendants()
+    []
+    >>> platformer_2d.children()
+    []
+    >>> TestNode.objects.get_parent_for(platformer_2d)
+    <TestNode: platformer>
+    
+    >>> platformer_3d.pk
+    4
+    >>> platformer_3d.tree_id
+    1
+    >>> platformer_3d.depth
+    3
+    >>> platformer_3d.lft
+    5
+    >>> platformer_3d.rgt
+    6
+    >>> platformer_3d.ancestors()
+    [<TestNode: action>, <TestNode: platformer>]
+    >>> platformer_3d.descendants()
+    []
+    >>> platformer_3d.children()
+    []
+    >>> TestNode.objects.get_parent_for(platformer_3d)
+    <TestNode: platformer>
+
+    >>> platformer_4d.pk
+    5
+    >>> platformer_4d.tree_id
+    1
+    >>> platformer_4d.depth
+    3
+    >>> platformer_4d.lft
+    7
+    >>> platformer_4d.rgt
+    8
+    >>> platformer_4d.ancestors()
+    [<TestNode: action>, <TestNode: platformer>]
+    >>> platformer_4d.descendants()
+    []
+    >>> platformer_4d.children()
+    []
+    >>> TestNode.objects.get_parent_for(platformer_4d)
+    <TestNode: platformer>
+    
+    >>> shmup.pk
+    6
+    >>> shmup.tree_id
+    1
+    >>> shmup.depth
+    2
+    >>> shmup.lft
+    10
+    >>> shmup.rgt
+    15
+    >>> shmup.tree()
+    [<TestNode: shmup>, <TestNode: shmup_vertical>, <TestNode: shmup_horizontal>]
+    >>> shmup.descendants()
+    [<TestNode: shmup_vertical>, <TestNode: shmup_horizontal>]
+    >>> shmup.children()
+    [<TestNode: shmup_vertical>, <TestNode: shmup_horizontal>]
+    
+    >>> shmup_vertical.pk
+    7
+    >>> shmup_vertical.tree_id
+    1
+    >>> shmup_vertical.depth
+    3
+    >>> shmup_vertical.lft
+    11
+    >>> shmup_vertical.rgt
+    12
+    >>> shmup_vertical.ancestors()
+    [<TestNode: action>, <TestNode: shmup>]
+    >>> shmup_vertical.descendants()
+    []
+    >>> shmup_vertical.children()
+    []
+    >>> TestNode.objects.get_parent_for(shmup_vertical)
+    <TestNode: shmup>
+
+    >>> shmup_horizontal.pk
+    8
+    >>> shmup_horizontal.tree_id
+    1
+    >>> shmup_horizontal.depth
+    3
+    >>> shmup_horizontal.lft
+    13
+    >>> shmup_horizontal.rgt
+    14
+    >>> shmup_horizontal.ancestors()
+    [<TestNode: action>, <TestNode: shmup>]
+    >>> shmup_horizontal.descendants()
+    []
+    >>> shmup_horizontal.children()
+    []
+    >>> TestNode.objects.get_parent_for(shmup_horizontal)
+    <TestNode: shmup>
+
+    >>> rpg.pk
+    9
+    >>> rpg.tree_id
+    2
+    >>> rpg.depth
+    1
+    >>> rpg.lft
+    1
+    >>> rpg.rgt
+    6
+    >>> rpg.tree()
+    [<TestNode: rpg>, <TestNode: arpg>, <TestNode: trpg>]
+    >>> rpg.descendants()
+    [<TestNode: arpg>, <TestNode: trpg>]
+    >>> rpg.children()
+    [<TestNode: arpg>, <TestNode: trpg>]
+
+    >>> arpg.pk
+    10
+    >>> arpg.tree_id
+    2
+    >>> arpg.depth
+    2
+    >>> arpg.lft
+    2
+    >>> arpg.rgt
+    3
+    >>> arpg.ancestors()
+    [<TestNode: rpg>]
+    >>> arpg.descendants()
+    []
+    >>> arpg.children()
+    []
+    >>> TestNode.objects.get_parent_for(arpg)
+    <TestNode: rpg>
+
+    >>> trpg.pk
+    11
+    >>> trpg.tree_id
+    2
+    >>> trpg.depth
+    2
+    >>> trpg.lft
+    4
+    >>> trpg.rgt
+    5
+    >>> trpg.ancestors()
+    [<TestNode: rpg>]
+    >>> trpg.descendants()
+    []
+    >>> trpg.children()
+    []
+    >>> TestNode.objects.get_parent_for(trpg)
+    <TestNode: rpg>
