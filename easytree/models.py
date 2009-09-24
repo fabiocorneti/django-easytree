@@ -43,7 +43,7 @@ class BaseEasyTree(models.Model):
     rgt = models.PositiveIntegerField(db_index=True)
     tree_id = models.PositiveIntegerField(db_index=True)
     depth = models.PositiveIntegerField(db_index=True)
-
+        
     def make_materialized_path(self, field, sep, include_root):
         """
         Helper to make a materialized path to this node.
@@ -59,6 +59,10 @@ class BaseEasyTree(models.Model):
     def descendants(self):
         """ Returns all decendants of this node """
         return self.__class__.objects.get_descendants_for(self)
+    
+    def children(self):
+        """ Returns the children of this node """
+        return self.__class__.objects.get_children_for(self)
         
     def ancestors(self):
         """ Returns all ancestors of this node """
