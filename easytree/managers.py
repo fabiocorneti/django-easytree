@@ -21,14 +21,13 @@ def move_post_save(sender, instance, created, **kwargs):
     instance.easytree_relative_to = None
     instance.easytree_relative_position = None
     instance.easytree_current_parent = None
-    
+
 def calculate_lft_rght(sender, instance, **kwargs):
-    
     relative_to = getattr(instance, 'easytree_relative_to', None)
-    relative_position = getattr(instance, 'easytree_relative_position', None) 
+    relative_position = getattr(instance, 'easytree_relative_position', None)
     
     if not instance.pk:
-        
+
         if relative_to:
             if relative_position in ('first-child', 'last-child', 'sorted-child'):
                 logging.debug(u'calculate_lft_rght: added child to: %s | %s' % (unicode(relative_to), relative_position))
@@ -151,7 +150,6 @@ class EasyTreeManager(models.Manager):
         See: :meth:`easytree.managers.EasyTreeManager.get_descendants_for`
         """
         cls = self.get_first_model()
-
         if self.is_leaf(target):
             return cls.objects.none()
         return self.get_tree(target).exclude(pk=target.id)
@@ -487,7 +485,6 @@ class EasyTreeManager(models.Manager):
                           'left': target.tree_id,
                           'right': target.tree_id + 1}[pos]
                 sql, params = self._move_tree_right(newpos)
-
                 new_object.tree_id = newpos
         else:
             new_object.tree_id = target.tree_id
@@ -562,8 +559,7 @@ class EasyTreeManager(models.Manager):
             return self.add_sibling_to(last_child, new_object=new_object, pos=pos)
 
         # we're adding the first child of this node
-        sql, params = self._move_right(target.tree_id, target.rgt, False,
-                                                 2)
+        sql, params = self._move_right(target.tree_id, target.rgt, False, 2)
 
         # creating a new object
         new_object.tree_id = target.tree_id
@@ -573,17 +569,18 @@ class EasyTreeManager(models.Manager):
 
         # this is just to update the cache
         target.rgt = target.rgt+2
-
+        
         new_object._cached_parent_obj = target
 
         cursor = connection.cursor()
         cursor.execute(sql, params)
-        transaction.commit_unless_managed()        
+        transaction.commit_unless_managed()
         
     def add_root(self, new_object=None):
         """
         Adds a root node to the tree.
         """
+        
         cls = self.get_first_model()
 
         # do we have a root node already?
@@ -595,6 +592,7 @@ class EasyTreeManager(models.Manager):
             return self.add_sibling_to(last_root, 'sorted-sibling', new_object=new_object)
 
         if last_root:
+            
             # adding the new root node as the last one
             newtree_id = last_root.tree_id + 1
         else:
