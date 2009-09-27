@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.admin.views.main import ChangeList
 from django.utils import simplejson
 from django.utils.translation import ugettext_lazy as _
 from django.http import HttpResponse
@@ -7,13 +8,37 @@ from easytree import utils
 from easytree.forms import BaseEasyTreeForm
 from easytree.exceptions import EasyTreeException
 from django.db import transaction, connection
+import django.contrib.admin.views.main
+
+class EasyTreeChangeList(ChangeList):
+    """
+    Patcth to solve the inability to order by multiple fields in standard Django ChangeList; 
+    the need for this will hopefully go away in the next Django version.
+    
+    If no ordering is specified in your EasyTreeAdmin derived model admin, 
+    querysets will be ordered by default using BOTH ``tree_id`` and ``lft``;
+    this tecnique allows to overcome the segmentation of the tree induced by 
+    pagination facilities when ordering only by ``lft``.
+    
+    
+    """
+    _easytree_patched = True
+    def get_query_set(self):
+        qs = super(EasyTreeChangeList, self).get_query_set()
+        if EasyTreeAdmin in self.model_admin.__class__.__bases__:
+            if self.model_admin.ordering == ('lft',):
+                return qs.order_by('tree_id', 'lft')
+        return qs
+
+if not getattr(django.contrib.admin.views.main.ChangeList, '_easytree_patched', False):
+    django.contrib.admin.views.main.ChangeList = EasyTreeChangeList
 
 class EasyTreeAdmin(admin.ModelAdmin):
 
     exclude = ('tree_id', 'depth', 'lft', 'rgt')
 
     list_display = ('display_as_node',)
-
+    
     ordering = ('lft',)
 
     change_list_template = 'admin/easytree_change_list.html'
@@ -21,7 +46,7 @@ class EasyTreeAdmin(admin.ModelAdmin):
     form = BaseEasyTreeForm
     
     toplevel_model_cache = None
-    
+
     def display_as_node(self, obj):
         return  u'%s %s' % (
             u'>>>' * ((obj.depth or 1) -1),
