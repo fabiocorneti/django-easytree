@@ -63,6 +63,12 @@ class BaseEasyTree(models.Model):
     def children(self):
         """ Returns the children of this node """
         return self.__class__.objects.get_children_for(self)
+    
+    def siblings(self):
+        """
+        Returns the siblings of this node, including this node.
+        """
+        return self.__class__.objects.get_siblings_for(self)
         
     def ancestors(self):
         """ Returns all ancestors of this node """
