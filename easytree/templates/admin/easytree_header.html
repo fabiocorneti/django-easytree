@@ -1,4 +1,6 @@
 {% load easytree_tags %}
+{% if enable_dd %}
+
 {% jquery_ui_media %}
 
 <script type="text/javascript">
@@ -71,7 +73,6 @@
         return proxytbl;
     }
     
-    {% if enable_dd %}
     $(document).ready(function() {
         
         $('tr.result_item').each(function() {
@@ -155,8 +156,10 @@
 
         });
     });
-    {% endif %}
 </script>
+
+{% endif %}
+
 <style type="text/css">
     .marked { background: #ffcccc; }
     #position-menu { position: absolute; display: none; z-index: 2; border:  2px; }
