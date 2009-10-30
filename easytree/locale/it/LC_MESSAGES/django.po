@@ -53,11 +53,11 @@ msgstr "Nodo ordinato"
 
 #: forms.py:12 templates/admin/easytree_change_list.html:41
 msgid "First child"
-msgstr "Primo nodo di livello inferiore"
+msgstr "Primo nodo figlio"
 
 #: forms.py:13 templates/admin/easytree_change_list.html:42
 msgid "Last child"
-msgstr "Secondo nodo di livello inferiore"
+msgstr "Ultimo nodo figlio"
 
 #: forms.py:14
 msgid "Sorted child"
