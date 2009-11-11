@@ -52,7 +52,8 @@ class EasyTreeAdmin(admin.ModelAdmin):
             u'>>>' * ((obj.depth or 1) -1),
             unicode(obj)
         )
-        
+    display_as_node.short_description = _("Title")
+
     def get_toplevel_model(self):
         if not self.toplevel_model_cache:
             self.toplevel_model_cache = utils.get_toplevel_model(self.model)
