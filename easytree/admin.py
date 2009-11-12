@@ -87,7 +87,7 @@ class EasyTreeAdmin(admin.ModelAdmin):
                 ]
         else:
             return list(fieldsets) + [
-                ('Move', {'fields': ('relative_to', 'relative_position'), 'description': _('Fill the following fields only if you want to move this node.'), 'classes': 'collapse'} )
+                (_(u"Move"), {'fields': ('relative_to', 'relative_position'), 'description': _('Fill the following fields only if you want to move this node.'), 'classes': 'collapse'} )
             ]
         
     def move_view(self, request):

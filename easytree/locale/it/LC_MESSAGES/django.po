@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-11-11 18:00+0100\n"
+"POT-Creation-Date: 2009-11-11 18:44+0100\n"
 "PO-Revision-Date: 2009-11-11 18:00+0100\n"
 "Last-Translator: Fabio Corneti <info@corneti.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,6 +24,10 @@ msgid "Select the location of this node in the tree."
 msgstr "Seleziona la posizione del nodo nell'albero"
 
 #: admin.py:90
+msgid "Move"
+msgstr "Sposta"
+
+#: admin.py:90
 msgid "Fill the following fields only if you want to move this node."
 msgstr "Imposta i seguenti campi solo se desideri spostare il nodo."
 
@@ -35,39 +39,33 @@ msgstr "Richiesta invalida"
 msgid "No such model instance"
 msgstr "Istanza sconosciuta"
 
-#: forms.py:7
-#: templates/admin/easytree_change_list.html:44
+#: forms.py:7 templates/admin/easytree_change_list.html:44
 msgid "First sibling"
-msgstr "Primo nodo allo stesso livello"
+msgstr "Primo nodo allo stesso livello del nodo relativo"
 
-#: forms.py:8
-#: templates/admin/easytree_change_list.html:46
+#: forms.py:8 templates/admin/easytree_change_list.html:46
 msgid "Previous sibling"
-msgstr "Nodo precedente"
+msgstr "Sposta prima del nodo relativo"
 
-#: forms.py:9
-#: templates/admin/easytree_change_list.html:47
+#: forms.py:9 templates/admin/easytree_change_list.html:47
 msgid "Next sibling"
-msgstr "Nodo successivo"
+msgstr "Sposta dopo il nodo relativo"
 
-#: forms.py:10
-#: templates/admin/easytree_change_list.html:45
+#: forms.py:10 templates/admin/easytree_change_list.html:45
 msgid "Last sibling"
-msgstr "Ultimo nodo allo stesso livello"
+msgstr "Imposta come ultimo nodo allo stesso livello del nodo relativo"
 
 #: forms.py:11
 msgid "Sorted sibling"
 msgstr "Nodo ordinato"
 
-#: forms.py:12
-#: templates/admin/easytree_change_list.html:42
+#: forms.py:12 templates/admin/easytree_change_list.html:42
 msgid "First child"
-msgstr "Primo nodo figlio"
+msgstr "Imposta come primo figlio del nodo relativo"
 
-#: forms.py:13
-#: templates/admin/easytree_change_list.html:43
+#: forms.py:13 templates/admin/easytree_change_list.html:43
 msgid "Last child"
-msgstr "Ultimo nodo figlio"
+msgstr "Imposta come ultimo figlio del nodo relativo"
 
 #: forms.py:14
 msgid "Sorted child"
@@ -75,11 +73,11 @@ msgstr "Figlio ordinato"
 
 #: forms.py:42
 msgid "Relative to"
-msgstr "Relativo a"
+msgstr "Nodo relativo"
 
 #: forms.py:55
 msgid "Relative position"
-msgstr "Posizione relativa"
+msgstr "Nuova posizione"
 
 #: templates/admin/easytree_change_list.html:25
 msgid "Home"
@@ -99,4 +97,3 @@ msgstr[1] "Correggi gli errori evidenziati."
 #: templates/admin/easytree_change_list.html:74
 msgid "Filter"
 msgstr "Filtro"
-
