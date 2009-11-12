@@ -210,6 +210,17 @@ class EasyTreeManager(models.Manager):
         """
         return self.get_siblings_for(target)[0]
     
+    def get_last_sibling_for(self, target):
+        """
+        :returns: The rightmost node's sibling, can return the node itself if it
+            was the leftmost sibling.
+
+        Example::
+
+           MyTreeModel.objects.get_last_sibling_for(instance)
+        """
+        return self.get_siblings_for(target)[self.get_siblings_for(target).count()-1]
+
     def get_root_nodes(self):
         cls = self.get_first_model()
         """
@@ -338,7 +349,7 @@ class EasyTreeManager(models.Manager):
         if target == dest and (
               (pos == 'left') or \
               (pos in ('right', 'last-sibling') and \
-                dest == self.get_last_sibling(dest)) or \
+                dest == self.get_last_sibling_for(dest)) or \
               (pos == 'first-sibling' and \
                 dest == self.get_first_sibling_for(dest))):
             # special cases, not actually moving the node so no need to UPDATE
