@@ -71,7 +71,7 @@ class EasyTreeAdmin(admin.ModelAdmin):
     
     def get_fieldsets(self, request, obj=None):
         
-        fieldsets = super(EasyTreeAdmin, self).get_fieldsets(request, obj=None)
+        fieldsets = super(EasyTreeAdmin, self).get_fieldsets(request, obj=obj)
         
         return self.add_tree_fieldsets(fieldsets, request, obj=obj)
         
