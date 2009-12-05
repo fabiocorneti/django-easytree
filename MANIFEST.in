@@ -1,2 +1,3 @@
 recursive-include easytree/templates *
 recursive-include easytree/locale *
+recursive-include easytree/tests/doctests *
