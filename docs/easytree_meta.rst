@@ -26,3 +26,8 @@ max_depth
 ---------
 
 Max tree depth; implementation in progress.
+
+raw_relative_to
+---------------
+
+If set to True, the relative_to widget for the model will be set to ``django.forms.TextInput`` .
