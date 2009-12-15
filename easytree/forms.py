@@ -37,9 +37,16 @@ class BaseEasyTreeForm(forms.ModelForm):
         
         super(BaseEasyTreeForm, self).__init__(*args, **kwargs)
         
-        self.fields['relative_to'] = EasyTreeModelChoiceField(
-            queryset=self.toplevel_model.objects.order_by('tree_id', 'lft'), 
-            required=False, label=_("Relative to"))
+        raw_relative_to = getattr(self.instance._easytree_meta, 'raw_relative_to', False)
+        choice_field_kwargs = {
+            'queryset': self.toplevel_model.objects.order_by('tree_id', 'lft'),
+            'required': False,
+            'label': _("Relative to")
+        }
+        if raw_relative_to:
+            choice_field_kwargs['widget'] = forms.TextInput
+
+        self.fields['relative_to'] = EasyTreeModelChoiceField(**choice_field_kwargs)
         
         max_depth = getattr(self.instance._easytree_meta, 'max_depth', 0)
         if max_depth == 1:

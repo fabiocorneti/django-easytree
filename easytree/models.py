@@ -11,6 +11,7 @@ class EasyTreeOptions(object):
     node_order_by = []
     validators = []
     max_depth = 0
+    raw_relative_to = False
 
     def __init__(self, opts):
         if opts:       
