@@ -207,7 +207,7 @@ Final tree checks::
     [<TestNode: platformer_2d>, <TestNode: platformer_3d>, <TestNode: platformer_4d>]
 
     >>> platformer_2d.pk
-    3
+    3L
     >>> platformer_2d.tree_id
     1
     >>> platformer_2d.depth
@@ -226,7 +226,7 @@ Final tree checks::
     <TestNode: platformer>
     
     >>> platformer_3d.pk
-    4
+    4L
     >>> platformer_3d.tree_id
     1
     >>> platformer_3d.depth
@@ -245,7 +245,7 @@ Final tree checks::
     <TestNode: platformer>
 
     >>> platformer_4d.pk
-    5
+    5L
     >>> platformer_4d.tree_id
     1
     >>> platformer_4d.depth
@@ -281,7 +281,7 @@ Final tree checks::
     [<TestNode: shmup_vertical>, <TestNode: shmup_horizontal>]
     
     >>> shmup_vertical.pk
-    7
+    7L
     >>> shmup_vertical.tree_id
     1
     >>> shmup_vertical.depth
@@ -300,7 +300,7 @@ Final tree checks::
     <TestNode: shmup>
 
     >>> shmup_horizontal.pk
-    8
+    8L
     >>> shmup_horizontal.tree_id
     1
     >>> shmup_horizontal.depth
@@ -336,7 +336,7 @@ Final tree checks::
     [<TestNode: arpg>, <TestNode: trpg>]
 
     >>> arpg.pk
-    10
+    10L
     >>> arpg.tree_id
     2
     >>> arpg.depth
@@ -355,7 +355,7 @@ Final tree checks::
     <TestNode: rpg>
 
     >>> trpg.pk
-    11
+    11L
     >>> trpg.tree_id
     2
     >>> trpg.depth
