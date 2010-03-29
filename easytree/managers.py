@@ -427,7 +427,15 @@ class EasyTreeManager(models.Manager):
             depthdiff += 1
 
         # move the tree to the hole
-        sql = "UPDATE %(table)s " \
+        sql = "SELECT * FROM %(table)s " \
+              " WHERE tree_id = %(from_tree)d AND " \
+              "     lft BETWEEN %(fromlft)d AND %(fromrgt)d ORDER BY id ASC FOR UPDATE" % {
+                  'table': cls._meta.db_table,
+                  'from_tree': fromobj.tree_id,
+                  'fromlft': fromobj.lft,
+                  'fromrgt': fromobj.rgt
+              }
+        sql = sql + ";UPDATE %(table)s " \
               " SET tree_id = %(dest_tree)d, " \
               "     lft = lft + %(jump)d , " \
               "     rgt = rgt + %(jump)d , " \
@@ -639,8 +647,16 @@ class EasyTreeManager(models.Manager):
         
     def _get_close_gap_sql(self, drop_lft, drop_rgt, tree_id):
         cls = self.get_first_model()
-        
-        sql = 'UPDATE %(table)s ' \
+
+        sql = 'SELECT * FROM %(table)s ' \
+              ' WHERE (lft > %(drop_lft)d ' \
+              '     OR rgt > %(drop_lft)d) AND '\
+              '     tree_id=%(tree_id)d ORDER BY id ASC FOR UPDATE' % {
+                  'table': cls._meta.db_table,
+                  'drop_lft': drop_lft,
+                  'tree_id': tree_id
+              }
+        sql = sql + ";" + 'UPDATE %(table)s ' \
               ' SET lft = CASE ' \
               '           WHEN lft > %(drop_lft)d ' \
               '           THEN lft - %(gapsize)d ' \
@@ -666,7 +682,14 @@ class EasyTreeManager(models.Manager):
             lftop = '>='
         else:
             lftop = '>'
-        sql = 'UPDATE %(table)s ' \
+        
+        sql = 'SELECT * FROM %(table)s ' \
+              ' WHERE rgt >= %(parent_rgt)d AND ' \
+              '       tree_id = %(tree_id)s ORDER BY id ASC FOR UPDATE' % {
+                  'table': cls._meta.db_table,
+                  'parent_rgt': rgt,
+                  'tree_id': tree_id}
+        sql = sql + ';UPDATE %(table)s ' \
               ' SET lft = CASE WHEN lft %(lftop)s %(parent_rgt)d ' \
               '                THEN lft %(incdec)+d ' \
               '                ELSE lft END, ' \
