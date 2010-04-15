@@ -558,7 +558,7 @@ class EasyTreeManager(models.Manager):
             cursor = connection.cursor()
             cursor.execute(sql, params)
             
-        transaction.commit_unless_managed()        
+        transaction.commit_unless_managed()
         
     def add_child_to(self, target, new_object=None, pos=None):
         """
