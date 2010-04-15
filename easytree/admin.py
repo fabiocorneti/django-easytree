@@ -81,7 +81,7 @@ class EasyTreeAdmin(admin.ModelAdmin):
                 return fieldsets
             else:
                 return list(fieldsets) + [
-                    ('Position', {'fields': ('relative_to', 'relative_position'), 
+                    (_('Position'), {'fields': ('relative_to', 'relative_position'), 
                         'description': _('Select the location of this node in the tree.')
                     }),
                 ]
