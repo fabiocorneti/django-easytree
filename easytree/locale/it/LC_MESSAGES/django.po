@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-11-12 11:55+0100\n"
+"POT-Creation-Date: 2010-04-20 10:03+0200\n"
 "PO-Revision-Date: 2009-11-11 18:00+0100\n"
 "Last-Translator: Fabio Corneti <info@corneti.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,23 +19,29 @@ msgstr ""
 msgid "Title"
 msgstr "Titolo"
 
+#: admin.py:84
+msgid "Position"
+msgstr "Posizione"
+
 #: admin.py:85
-msgid "Select the location of this node in the tree."
-msgstr "Seleziona la posizione del nodo nell'albero"
+#, python-format
+msgid "Select the location of this %(modelname)s in the tree."
+msgstr "Seleziona la posizione del nodo %(modelname)s nell'albero"
 
 #: admin.py:90
 msgid "Move"
 msgstr "Sposta"
 
-#: admin.py:90
-msgid "Fill the following fields only if you want to move this node."
-msgstr "Imposta i seguenti campi solo se desideri spostare il nodo."
+#: admin.py:92
+#, python-format
+msgid "Fill the following fields only if you want to move this %(modelname)s."
+msgstr "Imposta i seguenti campi solo se desideri spostare il nodo %(modelname)s."
 
-#: admin.py:101
+#: admin.py:105
 msgid "Invalid GET parameters"
 msgstr "Richiesta invalida"
 
-#: admin.py:103
+#: admin.py:107
 msgid "No such model instance"
 msgstr "Istanza sconosciuta"
 
@@ -72,10 +78,11 @@ msgid "Sorted child"
 msgstr "Figlio ordinato"
 
 #: forms.py:42
-msgid "Relative to"
-msgstr "Nodo relativo"
+#, python-format
+msgid "Relative to %(modelname)s"
+msgstr "Nodo %(modelname)s relativo"
 
-#: forms.py:55
+#: forms.py:58
 msgid "Relative position"
 msgstr "Nuova posizione"
 
