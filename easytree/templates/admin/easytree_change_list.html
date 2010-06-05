@@ -1,51 +1,30 @@
-{% extends "admin/base_site.html" %}
+{% extends "admin/change_list.html" %}
 {% load adminmedia admin_list i18n easytree_tags %}
 
-{% block extrahead %}
-    {{ block.super }}
-    {% include "admin/easytree_header.html" %}
-{% endblock %}
-
-{% block extrastyle %}
-  {{ block.super }}
-  <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/changelists.css" />
-  {% if cl.formset %}
-    <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/forms.css" />
-    <script type="text/javascript" src="../../jsi18n/"></script>
-  {% endif %}
-  {{ media }}
-{% endblock %}
-
-{% block bodyclass %}change-list{% endblock %}
-
-{% if not is_popup %}
-  {% block breadcrumbs %}
-    <div class="breadcrumbs">
-      <a href="../../">
-        {% trans "Home" %}
-      </a>
-       &rsaquo; 
-       <a href="../">
-         {{ app_label|capfirst }}
-      </a>
-      &rsaquo; 
-      {{ cl.opts.verbose_name_plural|capfirst }}
-    </div>
-  {% endblock %}
-{% endif %}
+{% comment %}
+    TODO: commenting positioning in change list, needs refactoring
+    {% block extrahead %}
+        {{ block.super }}
+        {% include "admin/easytree_header.html" %}
+    {% endblock %}
+{% endcomment %}
 
 {% block coltype %}flex{% endblock %}
 
 {% block content %}
-    <ul id="position-menu">
-        <li class="heading">Relative position:</li>
-        <li class="position" id="first-child">{% trans "First child" %}</li>
-        <li class="position" id="last-child">{% trans "Last child" %}</li>
-        <li class="position" id="first-sibling">{% trans "First sibling" %}</li>
-        <li class="position" id="last-sibling">{% trans "Last sibling" %}</li>
-        <li class="position" id="left">{% trans "Previous sibling" %}</li>
-        <li class="position" id="right">{% trans "Next sibling" %}</li>
-    </ul>
+    {% comment %}
+        TODO: commenting positioning in change list, needs refactoring
+        <ul id="position-menu">
+            <li class="heading">Relative position:</li>
+            <li class="position" id="first-child">{% trans "First child" %}</li>
+            <li class="position" id="last-child">{% trans "Last child" %}</li>
+            <li class="position" id="first-sibling">{% trans "First sibling" %}</li>
+            <li class="position" id="last-sibling">{% trans "Last sibling" %}</li>
+            <li class="position" id="left">{% trans "Previous sibling" %}</li>
+            <li class="position" id="right">{% trans "Next sibling" %}</li>
+        </ul>
+    {% endcomment %}
+    
   <div id="content-main">
     {% block object-tools %}
       {% if has_add_permission %}
