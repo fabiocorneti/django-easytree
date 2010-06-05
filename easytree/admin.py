@@ -40,8 +40,9 @@ class EasyTreeAdmin(admin.ModelAdmin):
     list_display = ('display_as_node',)
     
     ordering = ('lft',)
-
-    change_list_template = 'admin/easytree_change_list.html'
+    
+    #TODO: not very useful with d&d disabled
+    #change_list_template = 'admin/easytree_change_list.html'
     
     form = BaseEasyTreeForm
     
