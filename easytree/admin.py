@@ -25,7 +25,7 @@ class EasyTreeChangeList(ChangeList):
     _easytree_patched = True
     def get_query_set(self):
         qs = super(EasyTreeChangeList, self).get_query_set()
-        if EasyTreeAdmin in self.model_admin.__class__.__bases__:
+        if isinstance(self.model_admin, EasyTreeAdmin):
             if self.model_admin.ordering == ('lft',):
                 return qs.order_by('tree_id', 'lft')
         return qs
