@@ -37,9 +37,16 @@ class BaseEasyTreeForm(forms.ModelForm):
         
         super(BaseEasyTreeForm, self).__init__(*args, **kwargs)
         
-        self.fields['relative_to'] = EasyTreeModelChoiceField(
-            queryset=self.toplevel_model.objects.order_by('tree_id', 'lft'), 
-            required=False, label=_("Relative to %(modelname)s") % {'modelname': self.toplevel_model._meta.verbose_name})
+        raw_relative_to = getattr(self.instance._easytree_meta, 'raw_relative_to', False)
+        choice_field_kwargs = {
+            'queryset': self.toplevel_model.objects.order_by('tree_id', 'lft'),
+            'required': False,
+            'label': _("Relative to %(modelname)s") % {'modelname': self.toplevel_model._meta.verbose_name}
+        }
+        if raw_relative_to:
+            choice_field_kwargs['widget'] = forms.TextInput
+
+        self.fields['relative_to'] = EasyTreeModelChoiceField(**choice_field_kwargs)
         
         max_depth = getattr(self.instance._easytree_meta, 'max_depth', 0)
         if max_depth == 1:
@@ -47,14 +54,11 @@ class BaseEasyTreeForm(forms.ModelForm):
         elif getattr(self.instance, 'node_order_by', None):
             relative_positions_choices = ('sorted-sibling', 'sorted-child')
         else:
-            relative_positions_choices = ('left', 'right', 'first-child', 'last-child', 'first-sibling', 'last-sibling')
-        
-        choices = [('', '')]
-        for k in relative_positions_choices:
-            choices.append((k, pos_map[k]))
+            relative_positions_choices = [k for k in pos_map.keys() if k not in ('sorted-sibling', 'sorted-child')]
+                
         self.fields['relative_position'] = forms.ChoiceField(
             required=False,
-            choices=choices,
+            choices=[('','-------')] + [(k, v) for k, v in pos_map.items() if k in relative_positions_choices],
             label=_("Relative position")
         )
 
@@ -70,14 +74,11 @@ class BaseEasyTreeForm(forms.ModelForm):
         if not self.instance.pk:
             
             if not relative_to:
-                
                 try:
                     model.objects.validate_root(None, relative_to, pos=relative_position, cleaned_data=cleaned_data)
                 except EasyTreeException, e:
                     raise forms.ValidationError, e.message
-                    
             else:
-                
                 if relative_position in ('last-child', 'first-child', 'sorted-child'):
                     
                     try:
