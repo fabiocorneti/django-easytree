@@ -8,6 +8,8 @@ from django.db.models import Q
 import logging
 import operator
 
+qn = connection.ops.quote_name
+
 def move_post_save(sender, instance, created, **kwargs):
     
     relative_to = getattr(instance, 'easytree_relative_to', None)
@@ -838,3 +840,64 @@ class EasyTreeManager(models.Manager):
                 pos = 'last-sibling'
                 
         return self.validate_move(target, related, pos)
+
+    def rebuild(self):
+        """
+        Rebuilds whole tree in database using parent.
+        """
+        opts = self.model._meta
+
+        cursor = connection.cursor()
+        cursor.execute('UPDATE %(table)s SET lft = 0, rgt = 0, depth = 1, tree_id = 0' % {
+            'table': qn(opts.db_table),
+        })
+
+        cursor.execute('SELECT %(id_col)s FROM %(table)s WHERE parent_id is NULL' % {
+            'id_col': qn(opts.pk.column),
+            'table': qn(opts.db_table),
+        })
+
+        idx = 0
+        for (pk, ) in cursor.fetchall():
+            idx += 1
+            self._rebuild_helper(pk, 1, idx)
+        transaction.commit_unless_managed()
+
+    def _rebuild_helper(self, pk, left, tree_id, level=1):
+        opts = self.model._meta
+        right = left + 1
+
+        cursor = connection.cursor()
+        cursor.execute('SELECT %(id_col)s FROM %(table)s WHERE parent_id = %(parent)d' % {
+            'id_col': qn(opts.pk.column),
+            'table': qn(opts.db_table),
+            'parent': pk,
+        })
+
+        for (child_id, ) in cursor.fetchall():
+            right = self._rebuild_helper(child_id, right, tree_id, level+1)
+
+        cursor.execute("""
+            UPDATE %(table)s
+            SET
+                %(left_col)s = %(left)d,
+                %(right_col)s = %(right)d,
+                %(level_col)s = %(level)d,
+                %(tree_id_col)s = %(tree_id)d
+            WHERE
+                %(pk_col)s = %(pk)s
+        """ % {
+            'table': qn(opts.db_table),
+            'pk_col': qn(opts.pk.column),
+            'left_col': "lft",
+            'right_col': "rgt",
+            'level_col': "depth",
+            'tree_id_col': "tree_id",
+            'pk': pk,
+            'left': left,
+            'right': right,
+            'level': level,
+            'tree_id': tree_id
+        })
+
+        return right + 1
